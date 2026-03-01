@@ -25,7 +25,7 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
         </div>
         
         <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-wide mb-4">
-          INtouch AirLines
+          Intouch AirLines
         </h1>
         
         <div className="w-24 h-1 bg-[#E5B869] mx-auto mb-6 rounded-full"></div>
