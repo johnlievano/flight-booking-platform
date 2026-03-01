@@ -53,7 +53,7 @@ function App() {
       {view === 'register' && (
         <Register
           key="register-view"
-          onBackToLogin={() => setView('welcome')}
+          onBackToLogin={() => setView('login')}
           onRegisterSuccess={() => setView('login')}
         />
       )}
