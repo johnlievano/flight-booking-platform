@@ -53,7 +53,8 @@ function App() {
       {view === 'register' && (
         <Register
           key="register-view"
-          onBackToLogin={() => setView('login')}
+          onBackToWelcome={() => setView('welcome')}
+          onGoToLogin={() => setView('login')}
           onRegisterSuccess={() => setView('login')}
         />
       )}
@@ -61,8 +62,8 @@ function App() {
       {view === 'forgot' && (
         <ForgotPassword
           key="forgot-view"
-          onBackToWelcome={() => setView('welcome')}  
-          onBackToLogin={() => setView('login')}     
+          onBackToWelcome={() => setView('welcome')}
+          onBackToLogin={() => setView('login')}
         />
       )}
 
