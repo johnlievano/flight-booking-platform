@@ -149,8 +149,8 @@ const Dashboard = ({ onLogout }) => {
             setLoadingFlights(true);
             try {
                 const token = localStorage.getItem('token');
-                // Al no enviar parametros, el backend traera todos los programados
-                const response = await axios.get(`${API_URL}/flights/search`, {
+                // CAMBIO AQUÍ: Usamos /flights en lugar de /flights/search
+                const response = await axios.get(`${API_URL}/flights`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setFlights(response.data);
@@ -177,27 +177,29 @@ const Dashboard = ({ onLogout }) => {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('Sesion expirada');
 
-            const params = {};
-
-            // Solo enviamos los parametros si el usuario los lleno
-            if (originId) params.origin = originId;
-            if (destinationId) params.destination = destinationId;
-
-            // Limpieza y envio estricto de fecha y hora
-            if (date && date.trim() !== '') params.date = date;
-            if (time && time.trim() !== '') params.time = time;
-
-            params.passengers = passengersCount;
-
-            const response = await axios.get(`${API_URL}/flights/search`, {
-                params,
+            // 1. Pedimos todos los vuelos
+            const response = await axios.get(`${API_URL}/flights`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            setFlights(response.data);
+            let resultados = response.data;
+
+            // 2. Filtramos manualmente por los selectores
+            if (originId) {
+                resultados = resultados.filter(f => f.originAirportId.toString() === originId.toString());
+            }
+            if (destinationId) {
+                resultados = resultados.filter(f => f.destinationAirportId.toString() === destinationId.toString());
+            }
+            if (date) {
+                // Compara la fecha exacta (ej. "2026-03-01")
+                resultados = resultados.filter(f => f.departureTime.startsWith(date));
+            }
+
+            setFlights(resultados);
         } catch (err) {
             console.error('Error en busqueda:', err);
-            setError(err.response?.data?.message || err.message || 'Error al buscar vuelos');
+            setError('Error al buscar vuelos. Intenta de nuevo.');
             if (err.response?.status === 401) onLogout();
         } finally {
             setLoadingFlights(false);
@@ -292,8 +294,8 @@ const Dashboard = ({ onLogout }) => {
 
                     {/* RELOJ DE INACTIVIDAD */}
                     <div className={`mx-auto w-fit flex items-center gap-2 px-3 py-1.5 rounded-full border ${timeLeft < 60
-                            ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' // Se pone rojo parpadeante en el último minuto
-                            : 'bg-black/20 border-white/10 text-gray-300'
+                        ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' // Se pone rojo parpadeante en el último minuto
+                        : 'bg-black/20 border-white/10 text-gray-300'
                         }`}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span className="text-sm font-mono font-medium">{formatTime(timeLeft)}</span>
@@ -423,7 +425,7 @@ const Dashboard = ({ onLogout }) => {
                                         <div key={flight.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
                                             <div className="bg-[#2A3F45] px-5 py-3 flex justify-between items-center">
                                                 <span className="text-white font-semibold tracking-wide text-sm">{flight.airline?.name || 'Aerolinea'}</span>
-                                                <span className="text-[#E5B869] text-xs font-bold px-2 py-1 bg-white/10 rounded">{flight.availableSeats} ASIENTOS LIBRES</span>
+                                                <span className="text-[#E5B869] text-xs font-bold px-2 py-1 bg-white/10 rounded">{flight.totalSeats} ASIENTOS LIBRES</span>
                                             </div>
 
                                             <div className="p-5 flex-1 flex flex-col">
