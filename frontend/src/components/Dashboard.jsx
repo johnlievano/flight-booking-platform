@@ -177,29 +177,29 @@ const Dashboard = ({ onLogout }) => {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('Sesion expirada');
 
-            // 1. Pedimos todos los vuelos
-            const response = await axios.get(`${API_URL}/flights`, {
+            const params = {};
+
+            if (originId) params.origin = originId;
+            if (destinationId) params.destination = destinationId;
+            if (date && date.trim() !== '') params.date = date;
+
+           
+            if (time && time.trim() !== '') {
+                // Enviamos la hora tal cual, el backend hace la conversión
+                params.time = time;
+            }
+
+            params.passengers = passengersCount;
+
+            const response = await axios.get(`${API_URL}/flights/search`, {
+                params,
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            let resultados = response.data;
-
-            // 2. Filtramos manualmente por los selectores
-            if (originId) {
-                resultados = resultados.filter(f => f.originAirportId.toString() === originId.toString());
-            }
-            if (destinationId) {
-                resultados = resultados.filter(f => f.destinationAirportId.toString() === destinationId.toString());
-            }
-            if (date) {
-                // Compara la fecha exacta (ej. "2026-03-01")
-                resultados = resultados.filter(f => f.departureTime.startsWith(date));
-            }
-
-            setFlights(resultados);
+            setFlights(response.data);
         } catch (err) {
             console.error('Error en busqueda:', err);
-            setError('Error al buscar vuelos. Intenta de nuevo.');
+            setError(err.response?.data?.message || err.message || 'Error al buscar vuelos');
             if (err.response?.status === 401) onLogout();
         } finally {
             setLoadingFlights(false);
