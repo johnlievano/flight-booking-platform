@@ -25,13 +25,13 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
         </div>
         
         <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-wide mb-4">
-          Terminal de Servicio de Reserva
+          INtouch AirLines
         </h1>
         
         <div className="w-24 h-1 bg-[#E5B869] mx-auto mb-6 rounded-full"></div>
         
         <p className="text-gray-200 text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed font-light">
-          Bienvenido al sistema de Intouch Airlines. A través de este terminal podrá acceder a nuestros servicios de reserva de vuelos intercontinentales. Si es su primera vez con nosotros, le invitamos a crear su cuenta de pasajero. Si ya forma parte de nuestra aerolínea, inicie sesión para continuar con sus reservas.
+          Bienvenido al sistema de Intouch Airlines. A través de esta plataforma podrá acceder a nuestros servicios de reserva de vuelos nacionales. Si es su primera vez con nosotros, le invitamos a crear su cuenta de pasajero. Si ya forma parte de nuestra aerolínea, inicie sesión para gestionar sus reservas y consultar el estado de sus vuelos.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
