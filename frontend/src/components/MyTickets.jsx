@@ -32,12 +32,12 @@ const MyTickets = () => {
     const getFlightStatusConfig = (status) => {
         switch (status) {
             case 'DELAYED':
-                return { text: 'RETRASADO', classes: 'bg-yellow-100 text-yellow-800 border-yellow-300 animate-pulse' };
+                return { text: 'DELAYED', classes: 'bg-yellow-100 text-yellow-800 border-yellow-300 animate-pulse' };
             case 'CANCELLED':
-                return { text: 'CANCELADO', classes: 'bg-red-100 text-red-800 border-red-300' };
+                return { text: 'CANCELLED', classes: 'bg-red-100 text-red-800 border-red-300' };
             case 'SCHEDULED':
             default:
-                return { text: 'A TIEMPO', classes: 'bg-green-100 text-green-800 border-green-300' };
+                return { text: 'SCHEDULED', classes: 'bg-green-100 text-green-800 border-green-300' };
         }
     };
 
