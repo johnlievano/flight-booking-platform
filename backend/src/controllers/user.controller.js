@@ -11,18 +11,15 @@ import { transporter } from "../utils/mailer.js";
 export const registerUser = async (req, res) => {
   try {
     // Extraemos los datos que vienen del formulario de registro
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body; // ← AGREGADO phone
 
     // Validar si el correo ya está en uso
-    // Buscamos en la base de datos algún usuario con ese email
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      // Si ya existe, devolvemos un error 400 (Bad Request)
       return res.status(400).json({ error: "El correo ya está registrado" });
     }
 
     // Encriptar la contraseña antes de guardarla
-    // El 10 es el "salt rounds" - mientras más alto, más seguro pero más lento
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Crear el usuario en la base de datos
@@ -30,14 +27,14 @@ export const registerUser = async (req, res) => {
       data: {
         name,
         email,
-        password: hashedPassword, // Guardamos la contraseña encriptada, no la original
+        password: hashedPassword,
+        phone: phone || null // ← AGREGADO phone (si viene vacío, guarda null)
       }
     });
 
     // Respondemos con éxito y código 201 (Created)
     res.status(201).json({ message: "Usuario registrado exitosamente" });
   } catch (error) {
-    // Si algo falla, lo mostramos en consola y devolvemos error 500
     console.error("Error en el registro:", error);
     res.status(500).json({ error: "Error al registrar el usuario" });
   }
