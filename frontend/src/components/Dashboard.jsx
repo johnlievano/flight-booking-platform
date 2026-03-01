@@ -6,30 +6,23 @@ import MyTickets from './MyTickets';
 
 const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
-// 1. DEFINIR LOS AVATARES (al inicio del componente, antes del Dashboard)
 const AVATAR_SAMPLES = [
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", // Piloto
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka", // Viajera
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack",  // Tripulante
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",// Pasajera
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=Max"    // Turista
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Max"
 ];
 
 const Dashboard = ({ onLogout }) => {
-    // ------------------------------------------------
-    // Estado de Navegacion y Layout Responsivo
-    // ------------------------------------------------
     const [currentView, setCurrentView] = useState('search');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // ------------------------------------------------
-    // Estados para el formulario de busqueda
-    // ------------------------------------------------
     const [airports, setAirports] = useState([]);
     const [originId, setOriginId] = useState('');
     const [destinationId, setDestinationId] = useState('');
-    const [date, setDate] = useState(''); // Opcional
-    const [time, setTime] = useState(''); // Opcional
+    const [date, setDate] = useState(''); 
+    const [time, setTime] = useState(''); 
     const [passengersCount, setPassengersCount] = useState(1);
     const [loadingAirports, setLoadingAirports] = useState(true);
 
@@ -38,39 +31,29 @@ const Dashboard = ({ onLogout }) => {
     const [error, setError] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    // ------------------------------------------------
-    // Estados para la reserva (R2) y Pago (R3)
-    // ------------------------------------------------
     const [selectedFlight, setSelectedFlight] = useState(null);
     const [showReservationForm, setShowReservationForm] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [currentReservationData, setCurrentReservationData] = useState(null);
 
-    // ------------------------------------------------
-    // Estados para el Perfil de Usuario (AGREGAR avatarIndex)
-    // ------------------------------------------------
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileData, setProfileData] = useState({
         name: '',
         email: '',
         phone: '',
         savedCard: '',
-        avatarIndex: 0 // Índice del avatar seleccionado
+        avatarIndex: 0
     });
 
-    // ------------------------------------------------
-    // Temporizador de inactividad (R8)
-    // ------------------------------------------------
     const [lastActivity, setLastActivity] = useState(Date.now());
-    const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutos en segundos
+    const [timeLeft, setTimeLeft] = useState(15 * 60);
 
     const resetTimer = useCallback(() => {
         setLastActivity(Date.now());
-        setTimeLeft(15 * 60); // Reiniciar a 15:00 si hay actividad
+        setTimeLeft(15 * 60);
     }, []);
 
     useEffect(() => {
-        // Eventos que se consideran "actividad"
         const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
         events.forEach(event => window.addEventListener(event, resetTimer));
         return () => events.forEach(event => window.removeEventListener(event, resetTimer));
@@ -84,7 +67,7 @@ const Dashboard = ({ onLogout }) => {
             if (remainingSeconds <= 0) {
                 clearInterval(interval);
                 localStorage.removeItem('token');
-                alert("Tu sesión ha expirado por inactividad de 15 minutos.");
+                alert("Tu sesión ha expirado por inactividad.");
                 onLogout();
             } else {
                 setTimeLeft(remainingSeconds);
@@ -93,16 +76,12 @@ const Dashboard = ({ onLogout }) => {
         return () => clearInterval(interval);
     }, [lastActivity, onLogout]);
 
-    // Función para formatear los segundos a MM:SS
     const formatTime = (seconds) => {
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
         const s = (seconds % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
     };
 
-    // ------------------------------------------------
-    // Carga inicial de datos maestros y perfil
-    // ------------------------------------------------
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -112,16 +91,15 @@ const Dashboard = ({ onLogout }) => {
                     return;
                 }
 
-                // Cargar Aeropuertos
                 const airportsRes = await axios.get(`${API_URL}/airports`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setAirports(airportsRes.data);
 
-                // Cargar Perfil 
                 const profileRes = await axios.get(`${API_URL}/users/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                
                 setProfileData({
                     name: profileRes.data.name || '',
                     email: profileRes.data.email || '',
@@ -141,15 +119,11 @@ const Dashboard = ({ onLogout }) => {
         fetchInitialData();
     }, [onLogout]);
 
-    // ------------------------------------------------
-    // Efecto para cargar vuelos "Preview" al iniciar
-    // ------------------------------------------------
     useEffect(() => {
         const loadPreviewFlights = async () => {
             setLoadingFlights(true);
             try {
                 const token = localStorage.getItem('token');
-                // CAMBIO AQUÍ: Usamos /flights en lugar de /flights/search
                 const response = await axios.get(`${API_URL}/flights`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -164,9 +138,6 @@ const Dashboard = ({ onLogout }) => {
         loadPreviewFlights();
     }, []);
 
-    // ------------------------------------------------
-    // Manejador de Busqueda (Filtros Opcionales Corregidos)
-    // ------------------------------------------------
     const handleSearch = useCallback(async (e) => {
         e.preventDefault();
         setLoadingFlights(true);
@@ -177,14 +148,12 @@ const Dashboard = ({ onLogout }) => {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('Sesion expirada');
 
-            // 1. OBTENEMOS TODOS LOS VUELOS (Quitamos el /search del final)
             const response = await axios.get(`${API_URL}/flights`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             let resultados = response.data;
 
-            // 2. FILTROS LOCALES A PRUEBA DE BALAS
             if (originId) {
                 resultados = resultados.filter(f => f.originAirportId.toString() === originId.toString());
             }
@@ -192,7 +161,6 @@ const Dashboard = ({ onLogout }) => {
                 resultados = resultados.filter(f => f.destinationAirportId.toString() === destinationId.toString());
             }
             if (date && date.trim() !== '') {
-                // Filtro de fecha corregido para evitar saltos de zona horaria
                 resultados = resultados.filter(f => {
                     const d = new Date(f.departureTime);
                     const localDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -200,7 +168,6 @@ const Dashboard = ({ onLogout }) => {
                 });
             }
             if (time && time.trim() !== '') {
-                // "Lógica Colombiana": Si buscas a las 08:00, muestra vuelos de las 08:00 en adelante
                 resultados = resultados.filter(f => {
                     const flightTimeStr = new Date(f.departureTime).toLocaleTimeString('es-CO', {
                         hour: '2-digit', minute: '2-digit', hour12: false
@@ -224,12 +191,11 @@ const Dashboard = ({ onLogout }) => {
         setShowReservationForm(true);
     }, []);
 
-
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.put(`${API_URL}/users/me`, {
+            await axios.put(`${API_URL}/users/me`, {
                 name: profileData.name,
                 phone: profileData.phone,
                 savedCard: profileData.savedCard,
@@ -245,10 +211,9 @@ const Dashboard = ({ onLogout }) => {
         if (window.confirm("¿Deseas desactivar tu cuenta? Podrás reactivarla contactando a soporte.")) {
             try {
                 const token = localStorage.getItem('token');
-                await axios.patch(`${API_URL}/users/me/deactivate`, {}, { // Llamamos a una nueva ruta /deactivate
+                await axios.patch(`${API_URL}/users/me/deactivate`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-
                 alert("Cuenta desactivada correctamente.");
                 localStorage.removeItem('token');
                 onLogout();
@@ -259,7 +224,6 @@ const Dashboard = ({ onLogout }) => {
         }
     };
 
-    // Función para eliminar
     const handleDelete = async () => {
         if (window.confirm("¡ADVERTENCIA! ¿Estás seguro de eliminar tu cuenta permanentemente? Esta acción no se puede deshacer.")) {
             try {
@@ -267,7 +231,6 @@ const Dashboard = ({ onLogout }) => {
                 await axios.delete(`${API_URL}/users/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-
                 localStorage.removeItem('token');
                 onLogout();
             } catch (error) {
@@ -294,7 +257,7 @@ const Dashboard = ({ onLogout }) => {
                     <button onClick={() => setIsSidebarOpen(false)} className="absolute top-4 right-4 md:hidden text-gray-300 hover:text-white">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
-                    {/* ACTUALIZAR: Mostrar avatar seleccionado en la sidebar */}
+                    
                     <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden border-2 border-[#E5B869] shadow-lg">
                         <img
                             src={AVATAR_SAMPLES[profileData.avatarIndex]}
@@ -305,9 +268,8 @@ const Dashboard = ({ onLogout }) => {
                     <h2 className="text-xl font-bold text-[#E5B869]">Intouch Airlines</h2>
                     <p className="text-xs text-gray-400 mt-1">Terminal de Reservas</p>
 
-                    {/* RELOJ DE INACTIVIDAD */}
                     <div className={`mx-auto w-fit flex items-center gap-2 px-3 py-1.5 rounded-full border ${timeLeft < 60
-                        ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' // Se pone rojo parpadeante en el último minuto
+                        ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse'
                         : 'bg-black/20 border-white/10 text-gray-300'
                         }`}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -382,7 +344,6 @@ const Dashboard = ({ onLogout }) => {
                                         </select>
                                     </div>
 
-                                    {/* Fecha y Hora ahora son visualmente opcionales y sin atributos 'required' */}
                                     <div className="lg:col-span-1">
                                         <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">Fecha (Opcional)</label>
                                         <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#E5B869] outline-none transition-all" />
@@ -412,8 +373,6 @@ const Dashboard = ({ onLogout }) => {
                                 </div>
                             )}
 
-
-                            {/* Título de resultados (solo si hay vuelos) */}
                             {!loadingFlights && !error && flights.length > 0 && (
                                 <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-2">
                                     <h2 className="text-xl font-bold text-[#2A3F45]">Vuelos Disponibles</h2>
@@ -423,8 +382,6 @@ const Dashboard = ({ onLogout }) => {
                                 </div>
                             )}
 
-
-                            {/* Titulo de Vuelos Disponibles */}
                             {!loadingFlights && !error && flights.length === 0 ? (
                                 <div className="text-center py-12 md:py-16 bg-white rounded-xl border border-gray-100 shadow-sm px-4">
                                     <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -438,7 +395,7 @@ const Dashboard = ({ onLogout }) => {
                                         <div key={flight.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
                                             <div className="bg-[#2A3F45] px-5 py-3 flex justify-between items-center">
                                                 <span className="text-white font-semibold tracking-wide text-sm">{flight.airline?.name || 'Aerolinea'}</span>
-                                                <span className="text-[#E5B869] text-xs font-bold px-2 py-1 bg-white/10 rounded">{flight.totalSeats} ASIENTOS LIBRES</span>
+                                                <span className="text-[#E5B869] text-xs font-bold px-2 py-1 bg-white/10 rounded">{flight.totalSeats} ASIENTOS</span>
                                             </div>
 
                                             <div className="p-5 flex-1 flex flex-col">
@@ -461,14 +418,14 @@ const Dashboard = ({ onLogout }) => {
                                                     <div>
                                                         <p className="text-xs text-gray-400 mb-1">Salida</p>
                                                         <p className="font-semibold text-gray-700">
-                                                            {new Date(f.departureTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                                            {new Date(flight.departureTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                                         </p>
                                                         <p className="text-xs font-medium text-gray-500 mt-1">{new Date(flight.departureTime).toLocaleDateString()}</p>
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-xs text-gray-400 mb-1">Llegada</p>
                                                         <p className="font-semibold text-gray-700">
-                                                            {new Date(f.arrivalTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                                            {new Date(flight.arrivalTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                                         </p>
                                                         <p className="text-xs font-medium text-gray-500 mt-1">{new Date(flight.arrivalTime).toLocaleDateString()}</p>
                                                     </div>
@@ -529,7 +486,6 @@ const Dashboard = ({ onLogout }) => {
                                     </div>
                                     {isEditingProfile ? (
                                         <form onSubmit={handleProfileUpdate} className="space-y-4">
-                                            {/* Selector de avatares */}
                                             <div className="mb-6">
                                                 <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
                                                     Selecciona tu avatar
@@ -579,15 +535,12 @@ const Dashboard = ({ onLogout }) => {
                                                 </div>
                                             </div>
                                             <div className="mt-10 flex flex-col md:flex-row gap-4 justify-end border-t pt-6">
-                                                {/*  DESACTIVAR (Lo que te permite recuperarla luego en Prisma Studio) */}
                                                 <button
                                                     onClick={handleDeactivate}
                                                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                                 >
                                                     Desactivar mi cuenta temporalmente
                                                 </button>
-
-                                                {/* ELIMINAR (Borrado físico de la DB) */}
                                                 <button
                                                     onClick={handleDelete}
                                                     className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors border border-red-200"
