@@ -4,7 +4,7 @@ import ReservationForm from './ReservationForm';
 import PaymentSimulation from './PaymentSimulation';
 import MyTickets from './MyTickets';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 // 1. DEFINIR LOS AVATARES (al inicio del componente, antes del Dashboard)
 const AVATAR_SAMPLES = [

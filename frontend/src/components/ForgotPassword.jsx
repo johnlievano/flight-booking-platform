@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import AuthLayout from './AuthLayout';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const ForgotPassword = ({ onBackToWelcome, onBackToLogin }) => {
   const [email, setEmail] = useState('');
