@@ -21,6 +21,7 @@ const Dashboard = ({ onLogout }) => {
     const [currentView, setCurrentView] = useState('search');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const mainRef = useRef(null);
+    const resultsRef = useRef(null);
 
     // ------------------------------------------------
     // Estados para el formulario de busqueda
@@ -37,8 +38,8 @@ const Dashboard = ({ onLogout }) => {
     const [loadingFlights, setLoadingFlights] = useState(false);
     const [error, setError] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    
-    const [visibleFlightsCount, setVisibleFlightsCount] = useState(6); 
+
+    const [visibleFlightsCount, setVisibleFlightsCount] = useState(6);
 
     // ------------------------------------------------
     // Estados para la reserva (R2) y Pago (R3)
@@ -64,11 +65,11 @@ const Dashboard = ({ onLogout }) => {
     // Temporizador de inactividad (R8)
     // ------------------------------------------------
     const [lastActivity, setLastActivity] = useState(Date.now());
-    const [timeLeft, setTimeLeft] = useState(15 * 60); 
+    const [timeLeft, setTimeLeft] = useState(15 * 60);
 
     const resetTimer = useCallback(() => {
         setLastActivity(Date.now());
-        setTimeLeft(15 * 60); 
+        setTimeLeft(15 * 60);
     }, []);
 
     useEffect(() => {
@@ -273,12 +274,52 @@ const Dashboard = ({ onLogout }) => {
     };
 
     const handleViewMore = () => {
-        setVisibleFlightsCount(prevCount => prevCount + 6); 
+        // El índice de la primera tarjeta nueva es exactamente la cantidad actual de vuelos visibles.
+        // Ejemplo: Si hay 6 visibles, la nueva tarjeta será la número 6 (ya que empiezan en 0).
+        const targetIndex = visibleFlightsCount;
+
+        setVisibleFlightsCount(prevCount => prevCount + 6);
+
+        // Usamos setTimeout para permitir que React renderice las nuevas tarjetas antes de buscar el ID
+        setTimeout(() => {
+            const targetCard = document.getElementById(`flight-card-${targetIndex}`);
+            if (targetCard && mainRef.current) {
+                mainRef.current.scrollTo({
+                    top: targetCard.offsetTop - 80, // Mantenemos el mismo margen visual de 80px
+                    behavior: 'smooth'
+                });
+            }
+        }, 10);
     };
 
     const handleViewLess = () => {
-        setVisibleFlightsCount(prevCount => Math.max(6, prevCount - 6)); 
-        mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        // Calculamos la nueva cantidad de vuelos que quedarán visibles
+        const newCount = Math.max(6, visibleFlightsCount - 6);
+        setVisibleFlightsCount(newCount);
+
+        // Calculamos el índice al que queremos volver.
+        // Ejemplo: Si pasamos de 12 a 6, target es 0. Si pasamos de 18 a 12, target es 6.
+        const targetIndex = Math.max(0, newCount - 6);
+
+        // Usamos setTimeout para que React actualice el DOM antes de medir
+        setTimeout(() => {
+            // Si volvemos a los primeros 6, es más limpio hacer scroll al título
+            if (targetIndex === 0 && resultsRef.current) {
+                mainRef.current?.scrollTo({
+                    top: resultsRef.current.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            } else {
+                // Si estamos más abajo, hacemos scroll a la primera tarjeta de ese bloque
+                const targetCard = document.getElementById(`flight-card-${targetIndex}`);
+                if (targetCard && mainRef.current) {
+                    mainRef.current.scrollTo({
+                        top: targetCard.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }, 10);
     };
 
     // Funcionalidad extra: Boton de Scroll to top al presionar el header movil
@@ -305,7 +346,7 @@ const Dashboard = ({ onLogout }) => {
                     <button onClick={() => setIsSidebarOpen(false)} className="absolute top-4 right-4 md:hidden text-gray-300 hover:text-white">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
-                    
+
                     <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden border-2 border-[#E5B869] shadow-lg">
                         <img
                             src={AVATAR_SAMPLES[profileData.avatarIndex]}
@@ -317,7 +358,7 @@ const Dashboard = ({ onLogout }) => {
                     <p className="text-xs text-gray-400 mt-1">Terminal de Reservas</p>
 
                     <div className={`mx-auto w-fit flex items-center gap-2 px-3 py-1.5 rounded-full border mt-4 ${timeLeft < 60
-                        ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' 
+                        ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse'
                         : 'bg-black/20 border-white/10 text-gray-300'
                         }`}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -350,7 +391,7 @@ const Dashboard = ({ onLogout }) => {
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="md:hidden fixed top-0 left-0 right-0 bg-white shadow-md px-4 py-3 flex justify-between items-center z-40">
-                    <div 
+                    <div
                         onClick={scrollToTop}
                         className="flex items-center gap-3 cursor-pointer group"
                     >
@@ -370,7 +411,7 @@ const Dashboard = ({ onLogout }) => {
                     </button>
                 </header>
 
-                <main 
+                <main
                     ref={mainRef}
                     className="flex-1 overflow-y-auto p-4 md:p-8 pt-[72px] md:pt-8 relative bg-gray-50 w-full scroll-smooth"
                 >
@@ -430,7 +471,7 @@ const Dashboard = ({ onLogout }) => {
                             )}
 
                             {!loadingFlights && !error && flights.length > 0 && (
-                                <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-2">
+                                <div ref={resultsRef} className="mb-6 flex items-center justify-between border-b border-gray-200 pb-2">
                                     <h2 className="text-xl font-bold text-[#2A3F45]">Vuelos Disponibles</h2>
                                     <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                                         {flights.length} resultados encontrados
@@ -448,8 +489,12 @@ const Dashboard = ({ onLogout }) => {
                             ) : (
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                        {displayedFlights.map((flight) => (
-                                            <div key={flight.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                                        {displayedFlights.map((flight, index) => (
+                                            <div
+                                                key={flight.id}
+                                                id={`flight-card-${index}`}
+                                                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-500 flex flex-col animate-in fade-in slide-in-from-bottom-8"
+                                            >
                                                 <div className="bg-[#2A3F45] px-5 py-3 flex justify-between items-center">
                                                     <span className="text-white font-semibold tracking-wide text-sm">{flight.airline?.name || 'Intouch Airlines'}</span>
                                                     <span className="text-[#E5B869] text-xs font-bold px-2 py-1 bg-white/10 rounded">{flight.totalSeats} ASIENTOS</span>
