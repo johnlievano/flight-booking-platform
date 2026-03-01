@@ -177,29 +177,38 @@ const Dashboard = ({ onLogout }) => {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('Sesion expirada');
 
-            const params = {};
-
-            if (originId) params.origin = originId;
-            if (destinationId) params.destination = destinationId;
-            if (date && date.trim() !== '') params.date = date;
-
-           
-            if (time && time.trim() !== '') {
-                // Enviamos la hora tal cual, el backend hace la conversión
-                params.time = time;
-            }
-
-            params.passengers = passengersCount;
-
-            const response = await axios.get(`${API_URL}/flights/search`, {
-                params,
+            // 1. OBTENEMOS TODOS LOS VUELOS (Quitamos el /search del final)
+            const response = await axios.get(`${API_URL}/flights`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            setFlights(response.data);
+            let resultados = response.data;
+
+            // 2. FILTROS LOCALES A PRUEBA DE BALAS
+            if (originId) {
+                resultados = resultados.filter(f => f.originAirportId.toString() === originId.toString());
+            }
+            if (destinationId) {
+                resultados = resultados.filter(f => f.destinationAirportId.toString() === destinationId.toString());
+            }
+            if (date && date.trim() !== '') {
+                // Filtra por el día exacto seleccionado
+                resultados = resultados.filter(f => f.departureTime.startsWith(date));
+            }
+            if (time && time.trim() !== '') {
+                // "Lógica Colombiana": Si buscas a las 08:00, muestra vuelos de las 08:00 en adelante
+                resultados = resultados.filter(f => {
+                    const flightTimeStr = new Date(f.departureTime).toLocaleTimeString('es-CO', { 
+                        hour: '2-digit', minute: '2-digit', hour12: false 
+                    });
+                    return flightTimeStr >= time; 
+                });
+            }
+
+            setFlights(resultados);
         } catch (err) {
             console.error('Error en busqueda:', err);
-            setError(err.response?.data?.message || err.message || 'Error al buscar vuelos');
+            setError('Error al procesar la búsqueda. Intenta de nuevo.');
             if (err.response?.status === 401) onLogout();
         } finally {
             setLoadingFlights(false);
