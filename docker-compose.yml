@@ -1,0 +1,33 @@
+# Define la versión del formato de docker-compose
+version: "3.8"
+
+# Servicios (contenedores) que vamos a levantar
+services:
+  # Servicio de base de datos PostgreSQL
+  postgres:
+    # Imagen oficial de PostgreSQL versión 15
+    image: postgres:15
+    
+    # Nombre del contenedor
+    container_name: flight_postgres
+    
+    # Reinicia automáticamente si se cae
+    restart: always
+    
+    # Variables internas de PostgreSQL
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flight_booking_db
+    
+    # Conecta puerto local 5432 con el del contenedor
+    ports:
+      - "5432:5432"
+    
+    # Guarda datos aunque el contenedor se elimine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# Volumen persistente para la base de datos
+volumes:
+  postgres_data:

@@ -1,0 +1,144 @@
+// Genera el cliente Prisma para usarlo en Node
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Configura la base de datos PostgreSQL
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------
+// MODELOS PRINCIPALES
+// ----------------------------------------------------------------------
+
+// Usuario del sistema (Persona que se registra y administra reservas)
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  phone        String?
+  savedCard    String?
+  isActive   Boolean   @default(true)
+  avatarIndex Int      @default(0)
+  reservations Reservation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+}
+
+// Aerolínea que opera los vuelos (ej. Avianca, Latam)
+model Airline {
+  id      Int      @id @default(autoincrement())
+  name    String
+  code    String   // Código IATA de la aerolínea (ej. AV, LA)
+  
+  // Relación: Una aerolínea tiene muchos vuelos programados
+  flights Flight[]
+}
+
+// Aeropuerto de origen o destino
+model Airport {
+  id         Int      @id @default(autoincrement())
+  city       String
+  code       String   // Código IATA del aeropuerto (ej. BOG, MDE)
+
+  // Relaciones: Diferencia entre vuelos que salen y vuelos que llegan a este aeropuerto
+  departures Flight[] @relation("DepartureAirport")
+  arrivals   Flight[] @relation("ArrivalAirport")
+}
+
+// Vuelo programado por una aerolínea
+model Flight {
+  id                   Int      @id @default(autoincrement())
+  airlineId            Int
+  originAirportId      Int
+  destinationAirportId Int
+  departureTime        DateTime
+  arrivalTime          DateTime
+  price                Float
+  totalSeats           Int      // Capacidad máxima del avión
+  status               String   // Estado actual del vuelo (ej. SCHEDULED, DELAYED, CANCELLED)
+  seats                Seat[]   // Relación uno a muchos con los asientos individuales
+
+  // Relaciones de configuración del vuelo
+  airline              Airline  @relation(fields: [airlineId], references: [id])
+  origin               Airport  @relation("DepartureAirport", fields: [originAirportId], references: [id])
+  destination          Airport  @relation("ArrivalAirport", fields: [destinationAirportId], references: [id])
+
+  // Relaciones con las transacciones de los usuarios
+  reservationFlights   ReservationFlight[]
+  tickets              Ticket[]
+}
+
+// ----------------------------------------------------------------------
+// MODELOS DE RESERVA Y FACTURACIÓN
+// ----------------------------------------------------------------------
+
+// Reserva general realizada por un usuario (Agrupa vuelos y pasajeros)
+model Reservation {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  status     String   // Estado del pago/reserva (ej. PENDING, CONFIRMED, CANCELLED)
+  totalPrice Float    // Costo total sumando todos los vuelos y pasajeros
+  createdAt  DateTime @default(now())
+
+  // Relación: Qué usuario registrado en el sistema hizo la transacción
+  user       User     @relation(fields: [userId], references: [id])
+  
+  // Detalles internos de esta reserva en particular
+  passengers Passenger[]
+  flights    ReservationFlight[]
+  tickets    Ticket[]
+}
+
+// Tabla intermedia Reserva-Vuelo (Permite que una reserva incluya varios vuelos, ej. ida y vuelta o escalas)
+model ReservationFlight {
+  id            Int         @id @default(autoincrement())
+  reservationId Int
+  flightId      Int
+
+  // Relaciones que unen la reserva general con un vuelo específico
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  flight        Flight      @relation(fields: [flightId], references: [id])
+}
+
+// Pasajero físico asociado a una reserva (Puede ser el mismo usuario o familiares/amigos)
+model Passenger {
+  id            Int         @id @default(autoincrement())
+  reservationId Int
+  fullName      String
+  document      String      // Cédula, pasaporte u otro documento de identidad
+
+  // Relaciones: A qué reserva pertenece y qué tickets se le han emitido
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  tickets       Ticket[]
+}
+
+// Ticket (Pase de abordar) generado individualmente por cada pasajero y vuelo tras confirmar el pago
+model Ticket {
+  id            Int         @id @default(autoincrement())
+  reservationId Int
+  passengerId   Int
+  flightId      Int
+  ticketNumber  String      // Código único alfanumérico impreso en el pase de abordar
+
+  // Relaciones para cruzar la información completa del boleto
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  passenger     Passenger   @relation(fields: [passengerId], references: [id])
+  flight        Flight      @relation(fields: [flightId], references: [id])
+}
+
+// Modelo que representa cada asiento físico dentro de un vuelo específico.
+model Seat {
+  id         Int     @id @default(autoincrement())
+  number     String  // Número o código del asiento dentro del avión (Ej: "1A", "12C").
+  isOccupied Boolean @default(false)  // Indica si el asiento ya fue reservado.
+  flightId   Int     // Clave foránea que indica a qué vuelo pertenece este asiento.
+
+  flight     Flight  @relation(fields: [flightId], references: [id]) // Relación con el modelo Flight.
+  
+  // Garantiza que no puedan existir dos asientos con el mismo número en un mismo vuelo
+  @@unique([flightId, number])
+}
