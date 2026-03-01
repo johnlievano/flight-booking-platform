@@ -192,7 +192,7 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                 </div>
 
                 <div className="pt-4 border-t border-white/20">
-                    <p className="text-gray-300 text-xs font-semibold mb-3 tracking-wider text-center">ENLACES DE EVALUACIÓN</p>
+                    <p className="text-gray-300 text-xs font-semibold mb-3 tracking-wider text-center">ENLACES DIRECTOS</p>
                     <div className="grid grid-cols-2 gap-3">
 
                         {/* 1. Boton Repositorio (GitHub) */}

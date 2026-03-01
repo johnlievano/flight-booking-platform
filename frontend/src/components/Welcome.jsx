@@ -47,17 +47,22 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
           </div>
         </div>
 
-        {/* Titulo principal con el nuevo avion animado */}
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-wide text-shadow-sm">
-            BIENVENIDO A INTOUCH
-          </h1>
-          {/* Icono SVG de avion elegante con animacion de flotacion */}
-          <svg className="w-10 h-10 text-[#E5B869] avion-flotante" fill="currentColor" viewBox="0 0 24 24">
+        {/* Titulo principal centrado */}
+        <div className="flex flex-col items-center justify-center text-center mb-6 w-full">
+
+          {/* Icono SVG oculto en celular (hidden), visible flotando arriba en pantallas más grandes (sm:block) */}
+          <svg className="hidden sm:block w-8 h-8 text-[#E5B869] avion-flotante mb-3" fill="currentColor" viewBox="0 0 24 24">
             <path d="M22 16v-2l-8.5-5V3.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5V9L2 14v2l8.5-2.5V19L8 20.5V22l4-1 4 1v-1.5L13.5 19v-5.5L22 16z" />
           </svg>
+
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-wide text-shadow-sm uppercase leading-tight w-full">
+            Bienvenido a<br className="sm:hidden" /> Intouch
+          </h1>
+
+          <h2 className="text-xl sm:text-2xl font-bold text-[#E5B869] tracking-[0.2em] uppercase mt-2">
+            Airlines
+          </h2>
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-[#E5B869] tracking-[0.2em] uppercase mb-6">Airlines</h2>
 
         {/* Linea divisoria */}
         <div className="w-24 h-1.5 bg-[#E5B869] mx-auto mb-8 rounded-full shadow-sm opacity-80"></div>
