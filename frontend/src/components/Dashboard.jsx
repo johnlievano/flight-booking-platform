@@ -198,10 +198,10 @@ const Dashboard = ({ onLogout }) => {
             if (time && time.trim() !== '') {
                 // "Lógica Colombiana": Si buscas a las 08:00, muestra vuelos de las 08:00 en adelante
                 resultados = resultados.filter(f => {
-                    const flightTimeStr = new Date(f.departureTime).toLocaleTimeString('es-CO', { 
-                        hour: '2-digit', minute: '2-digit', hour12: false 
+                    const flightTimeStr = new Date(f.departureTime).toLocaleTimeString('es-CO', {
+                        hour: '2-digit', minute: '2-digit', hour12: false
                     });
-                    return flightTimeStr >= time; 
+                    return flightTimeStr >= time;
                 });
             }
 
@@ -456,12 +456,16 @@ const Dashboard = ({ onLogout }) => {
                                                 <div className="bg-gray-50 rounded-lg p-3 flex justify-between text-sm text-gray-600 mb-6">
                                                     <div>
                                                         <p className="text-xs text-gray-400 mb-1">Salida</p>
-                                                        <p className="font-semibold text-gray-700">{new Date(flight.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                        <p className="font-semibold text-gray-700">
+                                                            {new Date(flight.departureTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                                        </p>
                                                         <p className="text-xs font-medium text-gray-500 mt-1">{new Date(flight.departureTime).toLocaleDateString()}</p>
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-xs text-gray-400 mb-1">Llegada</p>
-                                                        <p className="font-semibold text-gray-700">{new Date(flight.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                        <p className="font-semibold text-gray-700">
+                                                            {new Date(flight.arrivalTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                                        </p>
                                                         <p className="text-xs font-medium text-gray-500 mt-1">{new Date(flight.arrivalTime).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
