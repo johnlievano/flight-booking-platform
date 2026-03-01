@@ -116,7 +116,7 @@ const MyTickets = () => {
                                             
                                             <div className="flex items-center gap-3">
                                                 {/* BADGE DINAMICO DE ESTADO DEL VUELO */}
-                                                <div className={`px-2 py-1 rounded text-[10px] font-black border tracking-wider ${statusConfig.classes}`}>
+                                                <div className={`px-2 py-1 rounded text-[10px] font-black border tracking-wider uppercase ${statusConfig.classes}`}>
                                                     {statusConfig.text}
                                                 </div>
 
@@ -136,7 +136,7 @@ const MyTickets = () => {
                                         <div className={`flex items-center justify-between mt-4 ${flightData.status === 'CANCELLED' ? 'opacity-60' : ''}`}>
                                             <div className="w-1/3">
                                                 <p className="text-2xl font-black text-[#2A3F45]">{flightData.origin?.code || '---'}</p>
-                                                <p className="text-xs text-gray-500">{flightData.departureTime ? new Date(flightData.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</p>
+                                                <p className="text-xs text-gray-500">{flightData.departureTime ? new Date(flightData.departureTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--'}</p>
                                             </div>
 
                                             <div className="w-1/3 flex flex-col items-center">
@@ -146,7 +146,7 @@ const MyTickets = () => {
 
                                             <div className="w-1/3 text-right">
                                                 <p className="text-2xl font-black text-[#2A3F45]">{flightData.destination?.code || '---'}</p>
-                                                <p className="text-xs text-gray-500">{flightData.arrivalTime ? new Date(flightData.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</p>
+                                                <p className="text-xs text-gray-500">{flightData.arrivalTime ? new Date(flightData.arrivalTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--'}</p>
                                             </div>
                                         </div>
                                     </div>

@@ -37,7 +37,7 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
     };
 
     return (
-        <div 
+        <div
             className="min-h-screen w-full flex flex-col lg:flex-row items-center justify-center bg-cover bg-center bg-no-repeat relative p-4 gap-6"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop')" }}
         >
@@ -55,7 +55,7 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
             <div className="absolute inset-0 bg-[#2A3F45]/80 backdrop-blur-sm"></div>
 
             {/* boton de regreso a la bienvenida */}
-            <button 
+            <button
                 onClick={onBack}
                 className="absolute top-6 left-6 z-20 text-white/70 hover:text-white flex items-center gap-2 transition-colors text-sm font-medium"
             >
@@ -105,7 +105,7 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                             </label>
                             <button
                                 type="button"
-                                onClick={onForgotClick} 
+                                onClick={onForgotClick}
                                 className="text-xs text-[#E5B869] hover:text-white transition-colors"
                             >
                                 ¿Olvidaste tu contraseña?
@@ -152,7 +152,7 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
             <div className="relative z-10 bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 w-full max-w-sm animacion-tarjeta" style={{ animationDelay: '0.1s' }}>
                 <h2 className="text-xl font-bold text-white mb-1">Prueba Técnica</h2>
                 <p className="text-gray-300 text-sm mb-6">Utilice estas credenciales para validar el sistema.</p>
-                
+
                 <div className="space-y-4 mb-6">
                     <div className="bg-white/10 border border-white/10 p-4 rounded-lg flex justify-between items-center group">
                         <div>
@@ -160,7 +160,7 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                             <p className="text-white text-sm font-medium">juan@test.com</p>
                             <p className="text-gray-400 text-xs mt-1">Clave: 123456</p>
                         </div>
-                        <button 
+                        <button
                             type="button"
                             onClick={() => handleAutoFill('juan@test.com', '123456')}
                             className="p-2 bg-white/5 hover:bg-white/20 rounded-md border border-white/10 text-white/70 hover:text-white transition-all"
@@ -171,14 +171,14 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                             </svg>
                         </button>
                     </div>
-                    
+
                     <div className="bg-white/10 border border-white/10 p-4 rounded-lg flex justify-between items-center group">
                         <div>
                             <p className="text-[#E5B869] text-xs font-bold mb-1 uppercase">Usuario de prueba 2</p>
                             <p className="text-white text-sm font-medium">sebas@test.com</p>
                             <p className="text-gray-400 text-xs mt-1">Clave: 123456</p>
                         </div>
-                        <button 
+                        <button
                             type="button"
                             onClick={() => handleAutoFill('sebas@test.com', '123456')}
                             className="p-2 bg-white/5 hover:bg-white/20 rounded-md border border-white/10 text-white/70 hover:text-white transition-all"
@@ -192,19 +192,49 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                 </div>
 
                 <div className="pt-4 border-t border-white/20">
-                    <p className="text-gray-300 text-xs font-semibold mb-3">RECURSOS DEL PROYECTO</p>
-                    <div className="grid grid-cols-2 gap-2">
-                        <a href="#" className="bg-[#1a1e23] text-white text-xs py-2 px-3 rounded text-center hover:bg-black transition-colors flex items-center justify-center gap-1 border border-gray-700">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <p className="text-gray-300 text-xs font-semibold mb-3 tracking-wider text-center">ENLACES DE EVALUACIÓN</p>
+                    <div className="grid grid-cols-2 gap-3">
+
+                        {/* 1. Boton Repositorio (GitHub) */}
+                        <a
+                            href="https://github.com/johnlievano/flight-booking-platform"
+                            target="_blank" rel="noopener noreferrer"
+                            className="bg-[#1a1e23] text-white text-[11px] py-2.5 px-2 rounded hover:bg-black transition-colors flex items-center justify-center gap-1.5 border border-gray-700 shadow-sm"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
                             </svg>
                             Repositorio
                         </a>
-                        <a href="#" className="bg-green-500/10 text-green-400 text-xs py-2 px-3 rounded text-center hover:bg-green-500/20 transition-colors border border-green-500/30">
-                            Base de Datos
+
+                        {/* 2. Boton Documentacion (Google Drive) */}
+                        <a
+                            href="https://docs.google.com/document/d/17YPsUq9vptpIk3XOcv-qMeDYckC9I-_ze98c4a6TsD4/edit?usp=sharing"
+                            target="_blank" rel="noopener noreferrer"
+                            className="bg-yellow-500/10 text-yellow-400 text-[11px] py-2.5 px-2 rounded hover:bg-yellow-500/20 transition-colors flex items-center justify-center gap-1.5 border border-yellow-500/30 shadow-sm"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Doc. Proyecto
                         </a>
-                        <a href="#" className="bg-blue-500/10 text-blue-400 text-xs py-2 px-3 rounded text-center hover:bg-blue-500/20 transition-colors col-span-2 border border-blue-500/30">
-                            Backend
+
+                        {/* 3. Boton BD Neon Console (Apunta a la info de Neon) */}
+                        <a
+                            href="https://neon.com/"
+                            target="_blank" rel="noopener noreferrer"
+                            className="bg-green-500/10 text-green-400 text-[11px] py-2.5 px-2 rounded text-center hover:bg-green-500/20 transition-colors border border-green-500/30 shadow-sm flex items-center justify-center gap-1.5"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                            BD Neon Console
+                        </a>
+
+                        {/* 4. Boton Backend (Apunta a Fly.io endpoints) */}
+                        <a
+                            href="https://backend-misty-violet-2850.fly.dev/api/flights"
+                            target="_blank" rel="noopener noreferrer"
+                            className="bg-blue-500/10 text-blue-400 text-[11px] py-2.5 px-2 rounded text-center hover:bg-blue-500/20 transition-colors border border-blue-500/30 shadow-sm flex items-center justify-center gap-1.5"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+                            Backend (Fly.io)
                         </a>
                     </div>
                 </div>
