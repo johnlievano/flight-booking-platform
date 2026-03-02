@@ -56,6 +56,6 @@ router.patch('/me/deactivate', authenticate, deactivateUser);
 router.post("/forgot-password", forgotPassword);
 
 //IMportacion de resetPassword
-router.post("/reset-Password", resetPassword);
+router.post("/reset-password", resetPassword);
 
 export default router;

@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🧹 Limpiando vuelos y asientos viejos...');
+  console.log(' Limpiando vuelos y asientos viejos...');
   // Limpiamos en orden para no romper relaciones
   await prisma.seat.deleteMany();
   await prisma.flight.deleteMany();
