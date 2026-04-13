@@ -234,14 +234,14 @@ export const forgotPassword = async (req, res) => {
 
     // 4. Preparamos el correo electrónico (con el mismo estilo de los tickets)
     const mailOptions = {
-      from: `"Intouch Airlines Soporte" <${process.env.EMAIL_USER}>`,
+      from: `"Áurea Airlines Soporte" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: "Recuperación de Contraseña - Intouch Airlines",
+      subject: "Recuperación de Contraseña - Áurea Airlines",
       // HTML con estilos en línea para compatibilidad con clientes de correo
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <div style="background-color: #2A3F45; padding: 20px; text-align: center;">
-                <h1 style="color: #E5B869; margin: 0; font-size: 24px; letter-spacing: 1px;">Intouch Airlines</h1>
+                <h1 style="color: #E5B869; margin: 0; font-size: 24px; letter-spacing: 1px;">Áurea Airlines</h1>
             </div>
             <div style="padding: 30px; background-color: #ffffff;">
                 <h2 style="color: #1f2937; font-size: 20px; margin-top: 0;">Recuperación de Acceso</h2>

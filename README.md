@@ -1,4 +1,4 @@
-# Sistema de Reserva y Gestión de Vuelos - Intouch Airlines
+# Sistema de Reserva y Gestión de Vuelos - Áurea Airlines
 
 Aplicación web full-stack diseñada para la gestión integral de reservas aéreas intercontinentales. El sistema ofrece una experiencia dinámica que abarca desde la selección visual de asientos hasta el seguimiento en tiempo real del estado operativo de los vuelos.
 
@@ -52,7 +52,7 @@ El sistema resuelve la complejidad de la logística de reservas mediante una arq
 
 ### Backend
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/intouch_db"
+DATABASE_URL="postgresql://user:password@localhost:5432/Áurea_db"
 JWT_SECRET="tu_clave_secreta"
 PORT=4000
 EMAIL_USER="tu_correo@gmail.com"

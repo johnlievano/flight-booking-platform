@@ -37,8 +37,8 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
         <div className="mb-4 flex justify-center">
           <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#E5B869]/20 rounded-full flex items-center justify-center p-2 shadow-lg border-2 border-[#E5B869]/50">
             <img
-              src="/Logo_Intouch_AirLines.png"
-              alt="Logo Intouch Airlines"
+              src="/Logo_Áurea_AirLines.png"
+              alt="Logo Áurea Airlines"
               className="w-full h-full object-contain drop-shadow-sm rounded-full"
             />
           </div>
@@ -51,7 +51,7 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
           </svg>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-wide text-shadow-sm uppercase leading-tight w-full">
-            Bienvenido a<br className="sm:hidden" /> Intouch
+            Bienvenido a<br className="sm:hidden" /> Áurea
           </h1>
 
           <h2 className="text-lg sm:text-xl font-bold text-[#E5B869] tracking-[0.2em] uppercase mt-1">

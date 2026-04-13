@@ -15,7 +15,7 @@ export const sendTicketEmail = async (userEmail, userName, flightDetails, passen
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                 <div style="background-color: #2A3F45; padding: 30px; text-align: center;">
-                    <h1 style="color: #E5B869; margin: 0; font-size: 28px;">Intouch Airlines</h1>
+                    <h1 style="color: #E5B869; margin: 0; font-size: 28px;">Áurea Airlines</h1>
                     <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">¡Tu reserva ha sido confirmada, ${userName}!</p>
                 </div>
                 
@@ -37,16 +37,16 @@ export const sendTicketEmail = async (userEmail, userName, flightDetails, passen
                     </div>
                     
                     <p style="text-align: center; color: #888; font-size: 12px; margin-top: 30px;">
-                        Gracias por volar con Intouch Airlines. ¡Buen viaje!
+                        Gracias por volar con Áurea Airlines. ¡Buen viaje!
                     </p>
                 </div>
             </div>
         `;
 
         await transporter.sendMail({
-            from: '"Intouch Airlines" <' + process.env.EMAIL_USER + '>',
+            from: '"Áurea Airlines" <' + process.env.EMAIL_USER + '>',
             to: userEmail,
-            subject: '✈️ Confirmación de Reserva - Intouch Airlines',
+            subject: '✈️ Confirmación de Reserva - Áurea Airlines',
             html: htmlContent
         });
 

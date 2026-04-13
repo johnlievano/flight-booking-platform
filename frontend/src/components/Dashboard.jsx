@@ -354,7 +354,7 @@ const Dashboard = ({ onLogout }) => {
                             className="w-full h-full object-cover"
                         />
                     </div>
-                    <h2 className="text-xl font-bold text-[#E5B869]">Intouch Airlines</h2>
+                    <h2 className="text-xl font-bold text-[#E5B869]">Áurea Airlines</h2>
                     <p className="text-xs text-gray-400 mt-1">Terminal de Reservas</p>
 
                     <div className={`mx-auto w-fit flex items-center gap-2 px-3 py-1.5 rounded-full border mt-4 ${timeLeft < 60
@@ -403,7 +403,7 @@ const Dashboard = ({ onLogout }) => {
                             />
                         </div>
                         <h1 className="text-lg font-bold text-[#2A3F45] group-hover:text-[#E5B869] transition-colors">
-                            Intouch Airlines
+                            Áurea Airlines
                         </h1>
                     </div>
                     <button onClick={() => setIsSidebarOpen(true)} className="text-gray-600 hover:text-[#2A3F45] focus:outline-none p-2">
@@ -496,7 +496,7 @@ const Dashboard = ({ onLogout }) => {
                                                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-500 flex flex-col animate-in fade-in slide-in-from-bottom-8"
                                             >
                                                 <div className="bg-[#2A3F45] px-5 py-3 flex justify-between items-center">
-                                                    <span className="text-white font-semibold tracking-wide text-sm">{flight.airline?.name || 'Intouch Airlines'}</span>
+                                                    <span className="text-white font-semibold tracking-wide text-sm">{flight.airline?.name || 'Áurea Airlines'}</span>
                                                     <span className="text-[#E5B869] text-xs font-bold px-2 py-1 bg-white/10 rounded">{flight.totalSeats} ASIENTOS</span>
                                                 </div>
 

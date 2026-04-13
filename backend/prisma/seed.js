@@ -9,7 +9,7 @@ async function main() {
 
   let airline = await prisma.airline.findFirst();
   if (!airline) {
-    airline = await prisma.airline.create({ data: { name: 'Intouch Airlines', code: 'ITA' } });
+    airline = await prisma.airline.create({ data: { name: 'Áurea Airlines', code: 'ITA' } });
   }
 
   const ciudades = [
