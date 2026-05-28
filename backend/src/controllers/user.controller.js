@@ -67,9 +67,9 @@ export const loginUser = async (req, res) => {
     }
 
     // Generamos un token JWT que el frontend usará para autenticarse
-    // El token incluye el ID del usuario y expira en 1 día
+    // El token incluye el ID del usuario, su rol y expira en 1 día
     const token = jwt.sign(
-      { userId: user.id }, // Payload: datos que guardamos en el token
+      { userId: user.id, role: user.role }, // Payload: datos que guardamos en el token
       process.env.JWT_SECRET, // Clave secreta para firmar (desde .env)
       { expiresIn: '1d' } // El token expira en 24 horas
     );
@@ -104,6 +104,7 @@ export const getProfile = async (req, res) => {
         phone: true,
         savedCard: true,
         avatarIndex: true, // Para el avatar personalizado
+        role: true,
         createdAt: true
       }
     });
@@ -234,14 +235,14 @@ export const forgotPassword = async (req, res) => {
 
     // 4. Preparamos el correo electrónico (con el mismo estilo de los tickets)
     const mailOptions = {
-      from: `"Áurea Airlines Soporte" <${process.env.EMAIL_USER}>`,
+      from: `"AeroManage Soporte" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: "Recuperación de Contraseña - Áurea Airlines",
+      subject: "Recuperación de Contraseña - AeroManage",
       // HTML con estilos en línea para compatibilidad con clientes de correo
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <div style="background-color: #2A3F45; padding: 20px; text-align: center;">
-                <h1 style="color: #E5B869; margin: 0; font-size: 24px; letter-spacing: 1px;">Áurea Airlines</h1>
+                <h1 style="color: #E5B869; margin: 0; font-size: 24px; letter-spacing: 1px;">AeroManage</h1>
             </div>
             <div style="padding: 30px; background-color: #ffffff;">
                 <h2 style="color: #1f2937; font-size: 20px; margin-top: 0;">Recuperación de Acceso</h2>

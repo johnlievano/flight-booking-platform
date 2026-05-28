@@ -2,101 +2,179 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log(' Limpiando vuelos y asientos viejos...');
-  // Limpiamos en orden para no romper relaciones
+  console.log('🧹 Limpiando datos anteriores...');
+  
+  // Limpiar en orden para no romper relaciones
+  await prisma.ticket.deleteMany();
   await prisma.seat.deleteMany();
+  await prisma.reservationFlight.deleteMany();
+  await prisma.passenger.deleteMany();
+  await prisma.reservation.deleteMany();
   await prisma.flight.deleteMany();
+  await prisma.airline.deleteMany();
+  await prisma.airport.deleteMany();
 
-  let airline = await prisma.airline.findFirst();
-  if (!airline) {
-    airline = await prisma.airline.create({ data: { name: 'Áurea Airlines', code: 'ITA' } });
-  }
+  console.log('✈️ Creando aerolínea...');
+  const airline = await prisma.airline.create({
+    data: { name: 'AeroManage', code: 'AMG' }
+  });
 
-  const ciudades = [
-    { city: 'Bogotá', code: 'BOG' }, { city: 'Medellín', code: 'MDE' },
-    { city: 'Cartagena', code: 'CTG' }, { city: 'Cali', code: 'CLO' },
-    { city: 'Santa Marta', code: 'SMR' }
+  // Definir rutas internacionales principales desde Bogotá
+  const routes = [
+    { origin: { city: 'Bogotá', code: 'BOG' }, destination: { city: 'Miami', code: 'MIA' }, duration: 3 },
+    { origin: { city: 'Bogotá', code: 'BOG' }, destination: { city: 'Madrid', code: 'MAD' }, duration: 9 },
+    { origin: { city: 'Bogotá', code: 'BOG' }, destination: { city: 'Ciudad de México', code: 'MEX' }, duration: 2.5 },
+    { origin: { city: 'Bogotá', code: 'BOG' }, destination: { city: 'Nueva York', code: 'NYC' }, duration: 4 },
+    { origin: { city: 'Bogotá', code: 'BOG' }, destination: { city: 'Lima', code: 'LIM' }, duration: 1.5 },
+    // Rutas adicionales para variedad
+    { origin: { city: 'Miami', code: 'MIA' }, destination: { city: 'Bogotá', code: 'BOG' }, duration: 3 },
+    { origin: { city: 'Madrid', code: 'MAD' }, destination: { city: 'Bogotá', code: 'BOG' }, duration: 9 },
+    { origin: { city: 'Nueva York', code: 'NYC' }, destination: { city: 'Bogotá', code: 'BOG' }, duration: 4 },
   ];
 
-  const aeropuertosDB = {};
-  for (const c of ciudades) {
-    let airport = await prisma.airport.findFirst({ where: { code: c.code } });
-    if (!airport) { airport = await prisma.airport.create({ data: c }); }
-    aeropuertosDB[c.code] = airport.id;
+  console.log('🏙️ Creando aeropuertos...');
+  const airportMap = {};
+  const uniqueAirports = new Map();
+
+  for (const route of routes) {
+    [route.origin, route.destination].forEach(airport => {
+      if (!uniqueAirports.has(airport.code)) {
+        uniqueAirports.set(airport.code, airport);
+      }
+    });
   }
 
-  console.log('✈️ Generando red de vuelos masiva (7 días en el futuro)...');
-  const nuevosVuelos = [];
-  let fechaBase = new Date();
-  fechaBase.setHours(0, 0, 0, 0); // Empezamos desde la medianoche de hoy
+  for (const [code, airport] of uniqueAirports) {
+    let dbAirport = await prisma.airport.findFirst({ where: { code } });
+    if (!dbAirport) {
+      dbAirport = await prisma.airport.create({ data: airport });
+    }
+    airportMap[code] = dbAirport.id;
+  }
 
-  // Generar vuelos para HOY y los próximos 6 días
-  for (let dias = 0; dias < 7; dias++) {
-    let fechaVuelo = new Date(fechaBase);
-    fechaVuelo.setDate(fechaVuelo.getDate() + dias);
-
-    for (let i = 0; i < ciudades.length; i++) {
-      for (let j = 0; j < ciudades.length; j++) {
-        if (i !== j) {
-          const originId = aeropuertosDB[ciudades[i].code];
-          const destId = aeropuertosDB[ciudades[j].code];
-          const precioBase = Math.floor(Math.random() * (250000 - 120000 + 1) + 120000);
-
-          // 1. VUELO AM (8:00 AM)
-          let salidaAM = new Date(fechaVuelo); salidaAM.setHours(8, 0, 0);
-          let llegadaAM = new Date(salidaAM); llegadaAM.setHours(9, 30, 0);
-          nuevosVuelos.push({
-            airlineId: airline.id, originAirportId: originId, destinationAirportId: destId,
-            departureTime: salidaAM, arrivalTime: llegadaAM, price: precioBase, totalSeats: 40, status: 'SCHEDULED'
-          });
-
-          // 2. VUELO PM (3:00 PM)
-          let salidaPM = new Date(fechaVuelo); salidaPM.setHours(15, 0, 0);
-          let llegadaPM = new Date(salidaPM); llegadaPM.setHours(16, 30, 0);
-          nuevosVuelos.push({
-            airlineId: airline.id, originAirportId: originId, destinationAirportId: destId,
-            departureTime: salidaPM, arrivalTime: llegadaPM, price: precioBase + 45000, totalSeats: 40, status: 'SCHEDULED'
-          });
-
-          // 3. VUELO NOCHE (9:00 PM)
-          let salidaNoche = new Date(fechaVuelo); salidaNoche.setHours(21, 0, 0);
-          let llegadaNoche = new Date(salidaNoche); llegadaNoche.setHours(22, 30, 0);
-          nuevosVuelos.push({
-            airlineId: airline.id, originAirportId: originId, destinationAirportId: destId,
-            departureTime: salidaNoche, arrivalTime: llegadaNoche, price: Math.max(100000, precioBase - 30000), totalSeats: 40, status: 'SCHEDULED'
-          });
-        }
+  console.log('📅 Generando vuelos para todo el año 2025-2026...');
+  
+  const flightsData = [];
+  
+  // Definir horarios de salida (06:00, 12:00, 18:00)
+  const departureHours = [6, 12, 18];
+  
+  // Generar vuelos desde 1 de Enero 2025 hasta 31 de Diciembre 2026
+  const startDate = new Date(2025, 0, 1); // 1 de Enero 2025
+  const endDate = new Date(2026, 11, 31); // 31 de Diciembre 2026
+  
+  let currentDate = new Date(startDate);
+  
+  while (currentDate <= endDate) {
+    const dayOfWeek = currentDate.getDay();
+    
+    // Generar 3 vuelos por día para cada ruta
+    for (const route of routes) {
+      for (const hour of departureHours) {
+        const departure = new Date(currentDate);
+        departure.setHours(hour, 0, 0, 0);
+        
+        const arrival = new Date(departure);
+        arrival.setHours(
+          Math.floor(hour + route.duration),
+          Math.floor((route.duration % 1) * 60),
+          0,
+          0
+        );
+        
+        // Precios dinámicos (más caros en fines de semana)
+        const basePriceEconomy = 120000 + Math.random() * 150000;
+        const basePriceBusiness = basePriceEconomy * 2.5;
+        
+        const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.3 : 1;
+        const timeMultiplier = hour === 6 ? 0.9 : hour === 12 ? 1 : 1.1; // Vuelos nocturnos más caros
+        
+        const economyPrice = Math.round(basePriceEconomy * weekendMultiplier * timeMultiplier);
+        const businessPrice = Math.round(basePriceBusiness * weekendMultiplier * timeMultiplier);
+        
+        flightsData.push({
+          airlineId: airline.id,
+          originAirportId: airportMap[route.origin.code],
+          destinationAirportId: airportMap[route.destination.code],
+          departureTime: departure,
+          arrivalTime: arrival,
+          price: economyPrice, // Guardamos el precio de economía
+          totalSeats: 150, // 120 economy + 30 business
+          status: 'ON_TIME'
+        });
       }
     }
+    
+    currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  await prisma.flight.createMany({ data: nuevosVuelos });
-  console.log(`✅ ¡Éxito! Se crearon ${nuevosVuelos.length} vuelos.`);
+  console.log(`📊 Total de vuelos a crear: ${flightsData.length}`);
+  
+  // Insertar vuelos en lotes de 100 para optimización
+  const flightBatchSize = 100;
+  for (let i = 0; i < flightsData.length; i += flightBatchSize) {
+    const batch = flightsData.slice(i, i + flightBatchSize);
+    await prisma.flight.createMany({ data: batch });
+    process.stdout.write(`\r✈️ Vuelos creados: ${Math.min(i + flightBatchSize, flightsData.length)}/${flightsData.length}`);
+  }
+  console.log('');
 
-  console.log('💺 Generando mapa de asientos (con pasajeros aleatorios)... Esto tomará unos segundos.');
-  const todosLosVuelos = await prisma.flight.findMany();
-  const asientosData = [];
+  console.log('💺 Generando asientos para todos los vuelos...');
+  const allFlights = await prisma.flight.findMany();
+  const seatsData = [];
 
-  for (const vuelo of todosLosVuelos) {
-    for (let row = 1; row <= 10; row++) {
-      for (const letter of ['A', 'B', 'C', 'D']) {
-        asientosData.push({
-          flightId: vuelo.id,
-          number: `${row}${letter}`,
-          isOccupied: Math.random() < 0.3 // 30% de probabilidad de que alguien ya haya comprado este asiento
+  for (const flight of allFlights) {
+    const economyCount = 120;
+    const businessCount = 30;
+
+    // Asientos de economía (1A-1F, 2A-2F, etc.)
+    for (let row = 1; row <= 20; row++) {
+      for (let col = 0; col < 6; col++) {
+        const seatLetter = String.fromCharCode(65 + col);
+        seatsData.push({
+          flightId: flight.id,
+          number: `${row}${seatLetter}`,
+          isOccupied: false
+        });
+      }
+    }
+
+    // Asientos de negocios (1A-1D Business, 2A-2D Business, etc.)
+    for (let row = 1; row <= 8; row++) {
+      for (let col = 0; col < 4; col++) {
+        const seatLetter = String.fromCharCode(65 + col);
+        seatsData.push({
+          flightId: flight.id,
+          number: `${row}${seatLetter}B`, // B para indicar Business
+          isOccupied: false
         });
       }
     }
   }
 
-  // Insertamos los asientos en lotes para no saturar la base de datos
-  const chunkSize = 4000;
-  for (let i = 0; i < asientosData.length; i += chunkSize) {
-    const chunk = asientosData.slice(i, i + chunkSize);
-    await prisma.seat.createMany({ data: chunk });
+  // Insertar asientos en lotes de 500 para optimización
+  const seatBatchSize = 500;
+  for (let i = 0; i < seatsData.length; i += seatBatchSize) {
+    const batch = seatsData.slice(i, i + seatBatchSize);
+    await prisma.seat.createMany({ data: batch });
+    process.stdout.write(`\r💺 Asientos creados: ${Math.min(i + seatBatchSize, seatsData.length)}/${seatsData.length}`);
   }
+  console.log('');
 
-  console.log(`✅ ¡Éxito! Se crearon ${asientosData.length} asientos interactivos.`);
+  console.log('\n✅ ¡Seed completado exitosamente!');
+  console.log(`📊 Estadísticas:`);
+  console.log(`   - Aerolíneas: 1`);
+  console.log(`   - Aeropuertos: ${uniqueAirports.size}`);
+  console.log(`   - Rutas: ${routes.length}`);
+  console.log(`   - Vuelos: ${flightsData.length}`);
+  console.log(`   - Asientos: ${seatsData.length}`);
 }
 
-main().catch(console.error).finally(() => prisma.$disconnect());
+main()
+  .catch((error) => {
+    console.error('❌ Error en seed:', error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

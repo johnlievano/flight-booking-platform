@@ -23,6 +23,7 @@ model User {
   savedCard    String?
   isActive   Boolean   @default(true)
   avatarIndex Int      @default(0)
+  role         String   @default("PASSENGER") // PASSENGER | ADMIN
   reservations Reservation[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @default(now()) @updatedAt

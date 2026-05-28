@@ -37,7 +37,7 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
         <div className="mb-4 flex justify-center">
           <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#E5B869]/20 rounded-full flex items-center justify-center p-2 shadow-lg border-2 border-[#E5B869]/50">
             <img
-              src="/Logo_Áurea_AirLines.png"
+              src="/Logo_Áurea_Airlines.png"
               alt="Logo Áurea Airlines"
               className="w-full h-full object-contain drop-shadow-sm rounded-full"
             />
@@ -51,11 +51,11 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
           </svg>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-wide text-shadow-sm uppercase leading-tight w-full">
-            Bienvenido a<br className="sm:hidden" /> Áurea
+            Bienvenido a
           </h1>
 
           <h2 className="text-lg sm:text-xl font-bold text-[#E5B869] tracking-[0.2em] uppercase mt-1">
-            Airlines
+            AeroManage
           </h2>
         </div>
 
@@ -64,7 +64,7 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
 
         {/* Texto */}
         <p className="text-gray-100 text-sm sm:text-base mb-6 max-w-2xl mx-auto leading-relaxed font-light tracking-wide">
-          Descubra una nueva era en viajes nacionales. Le invitamos cordialmente a <strong className="text-[#E5B869] font-medium">crear su cuenta de pasajero</strong> para acceder a rutas exclusivas, gestionar sus reservas y comenzar su próximo viaje con nosotros.
+          Descubra una nueva era en viajes con AeroManage. Le invitamos cordialmente a <strong className="text-[#E5B869] font-medium">crear su cuenta de pasajero</strong> para acceder a rutas exclusivas, gestionar sus reservas y comenzar su próximo viaje.
         </p>
 
         {/* Botones */}

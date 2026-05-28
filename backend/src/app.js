@@ -14,6 +14,7 @@ import airlineRoutes from "./routes/airline.routes.js";
 import airportRoutes from "./routes/airport.routes.js";
 import flightRoutes from "./routes/flight.routes.js";
 import reservationRoutes from "./routes/reservation.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 
 // Carga variables del archivo .env
@@ -43,7 +44,10 @@ app.use("/api/flights", flightRoutes);
 //Rutas de reservación
 app.use("/api/reservations", reservationRoutes);
 
-/** 
+// Rutas de administración
+app.use("/api/admin", adminRoutes);
+
+/**
   Ruta básica para probar que el servidor funciona
  */
 app.get("/", (req, res) => {

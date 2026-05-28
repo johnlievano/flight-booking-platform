@@ -1,4 +1,4 @@
-# Sistema de Reserva y Gestión de Vuelos - Áurea Airlines
+# AeroManage - Sistema de Gestión de Vuelos
 
 Aplicación web full-stack diseñada para la gestión integral de reservas aéreas intercontinentales. El sistema ofrece una experiencia dinámica que abarca desde la selección visual de asientos hasta el seguimiento en tiempo real del estado operativo de los vuelos.
 
@@ -52,9 +52,98 @@ El sistema resuelve la complejidad de la logística de reservas mediante una arq
 
 ### Backend
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/Áurea_db"
+DATABASE_URL="postgresql://user:password@localhost:5432/aeromanage_db"
 JWT_SECRET="tu_clave_secreta"
 PORT=4000
 EMAIL_USER="tu_correo@gmail.com"
 EMAIL_PASS="tu_app_password"
 FRONTEND_URL="http://localhost:5173"
+```
+
+## 8. Características de Administración (NEW ✨)
+
+AeroManage ahora incluye un sistema completo de administración para gestionar vuelos, usuarios y reservas.
+
+### Acceso Admin
+- Crear usuario admin: `node backend/scripts/createAdmin.js`
+- Login con credenciales admin
+- Acceso automático al dashboard de administración
+
+### Dashboard Administrativo
+El panel de admin incluye 4 secciones principales:
+
+#### 📊 Resumen (Overview)
+- Estadísticas en tiempo real
+- Total de vuelos activos
+- Total de usuarios registrados
+- Total de reservas procesadas
+
+#### ✈️ Gestión de Vuelos
+- Ver todos los vuelos con disponibilidad de asientos
+- Crear nuevos vuelos
+- Cambiar estado de vuelos (A Tiempo | Retrasado | Cancelado)
+- Actualizar precios y capacidad
+- Tabla completa con rutas, horarios y disponibilidad
+
+#### 👥 Gestión de Usuarios
+- Listar todos los usuarios del sistema
+- Ver rol de cada usuario (Pasajero | Administrador)
+- Cantidad de reservas por usuario
+- Información de contacto
+
+#### 🎫 Gestión de Reservas
+- Ver todas las reservas del sistema
+- Detalles del pasajero y vuelos asociados
+- Estado de la reserva (Confirmada | Pendiente | Cancelada)
+- Información de precios
+
+### API de Administración
+```
+GET    /api/admin/flights        - Listar vuelos
+POST   /api/admin/flights        - Crear vuelo
+PUT    /api/admin/flights/:id    - Actualizar vuelo
+DELETE /api/admin/flights/:id    - Cancelar vuelo
+PUT    /api/admin/flights/:id/status - Cambiar estado
+GET    /api/admin/users          - Listar usuarios
+GET    /api/admin/bookings       - Listar reservas
+```
+
+### Estructura de Vuelo
+Cada vuelo incluye:
+- 150 asientos totales (120 economía + 30 negocios)
+- Selección de asientos automática
+- Precios dinámicos según día y horario
+- Estado del vuelo actualizable
+
+## 9. Datos de Vuelos (Base de Datos Completa)
+
+El seed genera vuelos para todo el año 2025-2026:
+
+### Rutas Internacionales (8 rutas)
+- Bogotá ↔ Miami
+- Bogotá ↔ Madrid
+- Bogotá ↔ Ciudad de México
+- Bogotá ↔ Nueva York
+- Bogotá ↔ Lima
+- Plus rutas bidireccionales
+
+### Estadísticas de Datos
+- **Periodo**: 1 Enero 2025 - 31 Diciembre 2026
+- **Vuelos**: ~17,520 vuelos
+- **Asientos**: ~2,628,000 asientos
+- **Frecuencia**: 3 vuelos/día por ruta
+- **Horarios**: 06:00, 12:00, 18:00
+
+### Ejecutar Seed
+```bash
+cd backend
+npm run seed
+```
+
+Ver `SEED_EXECUTION_GUIDE.md` para instrucciones detalladas de seeding en producción.
+
+## 10. Guías Completas
+
+- **ADMIN_QUICK_REFERENCE.md** - Referencia rápida para administradores
+- **SEED_EXECUTION_GUIDE.md** - Guía de ejecución de datos
+- **IMPLEMENTATION_SUMMARY.md** - Resumen técnico de implementación
