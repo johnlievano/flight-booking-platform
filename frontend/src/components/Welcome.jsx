@@ -37,7 +37,7 @@ const Welcome = ({ onLoginClick, onRegisterClick }) => {
         <div className="mb-4 flex justify-center">
           <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#E5B869]/20 rounded-full flex items-center justify-center p-2 shadow-lg border-2 border-[#E5B869]/50">
             <img
-              src="/Logo_Áurea_Airlines.png"
+              src="/logo.png"
               alt="Logo Áurea Airlines"
               className="w-full h-full object-contain drop-shadow-sm rounded-full"
             />

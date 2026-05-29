@@ -87,7 +87,7 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                         </svg>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">AeroManage</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">AereoManage</h1>
                     <p className="text-gray-200 mt-2 font-light text-sm sm:text-base">Acceso al sistema</p>
                 </div>
 
