@@ -110,6 +110,29 @@ export const createFlight = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating flight:", error);
+    console.error("Error code:", error.code);
+    console.error("Error meta:", error.meta);
+
+    // Manejar error de foreign key
+    if (error.code === 'P2003') {
+      const fieldName = error.meta?.field_name || '';
+      console.error("Field name:", fieldName);
+      let entityName = 'registro';
+
+      if (fieldName.includes('airlineId') || fieldName.includes('Flight_airlineId')) {
+        entityName = 'aerolínea';
+      } else if (fieldName.includes('originAirportId') || fieldName.includes('Flight_originAirportId')) {
+        entityName = 'aeropuerto de origen';
+      } else if (fieldName.includes('destinationAirportId') || fieldName.includes('Flight_destinationAirportId')) {
+        entityName = 'aeropuerto de destino';
+      }
+
+      console.error("Entity name:", entityName);
+      return res.status(400).json({
+        error: `La ${entityName} con el ID proporcionado no existe en la base de datos`
+      });
+    }
+
     res.status(500).json({ error: "Error al crear el vuelo" });
   }
 };
@@ -329,6 +352,11 @@ export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Evitar que el admin se elimine a sí mismo
+    if (parseInt(id) === req.userId) {
+      return res.status(403).json({ error: "No puedes eliminar tu propia cuenta" });
+    }
+
     // Verificar que el usuario no tenga reservas activas
     const userWithReservations = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -375,6 +403,11 @@ export const updateUserRole = async (req, res) => {
       return res.status(400).json({ error: "Rol inválido. Use PASSENGER o ADMIN" });
     }
 
+    // Evitar que el admin cambie su propio rol
+    if (parseInt(id) === req.userId) {
+      return res.status(403).json({ error: "No puedes cambiar tu propio rol" });
+    }
+
     const user = await prisma.user.update({
       where: { id: parseInt(id) },
       data: { role },
@@ -407,6 +440,11 @@ export const toggleUserStatus = async (req, res) => {
 
     if (typeof isActive !== 'boolean') {
       return res.status(400).json({ error: "El campo isActive debe ser booleano" });
+    }
+
+    // Evitar que el admin se desactive a sí mismo
+    if (parseInt(id) === req.userId && !isActive) {
+      return res.status(403).json({ error: "No puedes desactivar tu propia cuenta" });
     }
 
     const user = await prisma.user.update({

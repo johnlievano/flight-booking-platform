@@ -111,7 +111,7 @@ const AdminDashboard = ({ onLogout }) => {
       });
     } catch (err) {
       console.error('Error creating flight:', err);
-      setError('Error al crear vuelo');
+      setError(err.response?.data?.error || 'Error al crear vuelo');
     }
   };
 
@@ -162,7 +162,7 @@ const AdminDashboard = ({ onLogout }) => {
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (err) {
       console.error('Error updating user role:', err);
-      setError('Error al actualizar rol');
+      setError(err.response?.data?.error || 'Error al actualizar rol');
     }
   };
 
