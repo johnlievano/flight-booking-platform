@@ -261,3 +261,174 @@ export const getAllBookings = async (req, res) => {
     res.status(500).json({ error: "Error al obtener reservas" });
   }
 };
+
+// POST /api/admin/users - Crear un nuevo usuario
+export const createUser = async (req, res) => {
+  try {
+    const { name, email, password, phone, role } = req.body;
+
+    // Validaciones
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Nombre, email y contraseña son requeridos" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+    }
+
+    // Verificar si el email ya existe
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: "El email ya está registrado" });
+    }
+
+    // Hashear la contraseña
+    const bcrypt = await import('bcrypt');
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear el usuario
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        phone: phone || null,
+        role: role || 'PASSENGER',
+        isActive: true,
+        avatarIndex: 0
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true
+      }
+    });
+
+    res.status(201).json({
+      message: "Usuario creado exitosamente",
+      user: {
+        ...user,
+        bookingCount: 0
+      }
+    });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Error al crear el usuario" });
+  }
+};
+
+// DELETE /api/admin/users/:id - Eliminar usuario
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verificar que el usuario no tenga reservas activas
+    const userWithReservations = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        reservations: {
+          where: {
+            status: { in: ['PENDING', 'CONFIRMED'] }
+          }
+        }
+      }
+    });
+
+    if (!userWithReservations) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    if (userWithReservations.reservations.length > 0) {
+      return res.status(400).json({
+        error: "No se puede eliminar el usuario porque tiene reservas activas"
+      });
+    }
+
+    // Eliminar usuario (hard delete)
+    await prisma.user.delete({
+      where: { id: parseInt(id) }
+    });
+
+    res.json({ message: "Usuario eliminado exitosamente" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Error al eliminar el usuario" });
+  }
+};
+
+// PUT /api/admin/users/:id/role - Cambiar rol del usuario
+export const updateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Validar rol
+    const validRoles = ['PASSENGER', 'ADMIN'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: "Rol inválido. Use PASSENGER o ADMIN" });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { role },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true
+      }
+    });
+
+    res.json({
+      message: "Rol actualizado exitosamente",
+      user
+    });
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    res.status(500).json({ error: "Error al actualizar el rol" });
+  }
+};
+
+// PUT /api/admin/users/:id/status - Activar/desactivar usuario
+export const toggleUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ error: "El campo isActive debe ser booleano" });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { isActive },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true
+      }
+    });
+
+    res.json({
+      message: isActive ? "Usuario activado" : "Usuario desactivado",
+      user
+    });
+  } catch (error) {
+    console.error("Error toggling user status:", error);
+    res.status(500).json({ error: "Error al cambiar el estado del usuario" });
+  }
+};

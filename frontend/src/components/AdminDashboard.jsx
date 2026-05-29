@@ -11,6 +11,7 @@ const AdminDashboard = ({ onLogout }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAddFlightModal, setShowAddFlightModal] = useState(false);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [formData, setFormData] = useState({
     airlineId: '',
     originAirportId: '',
@@ -19,6 +20,13 @@ const AdminDashboard = ({ onLogout }) => {
     arrivalTime: '',
     price: '',
     totalSeats: 150
+  });
+  const [userFormData, setUserFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    role: 'PASSENGER'
   });
 
   const API_BASE_URL = 'http://localhost:4000/api';
@@ -107,6 +115,71 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
+  // Funciones de gestión de usuarios
+  const createUser = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/admin/users`,
+        userFormData,
+        axiosConfig
+      );
+      setUsers([...users, response.data.user]);
+      setShowAddUserModal(false);
+      setUserFormData({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        role: 'PASSENGER'
+      });
+      setStats(prev => ({ ...prev, totalUsers: prev.totalUsers + 1 }));
+    } catch (err) {
+      console.error('Error creating user:', err);
+      setError(err.response?.data?.error || 'Error al crear usuario');
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/admin/users/${userId}`, axiosConfig);
+      setUsers(users.filter(u => u.id !== userId));
+      setStats(prev => ({ ...prev, totalUsers: prev.totalUsers - 1 }));
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(err.response?.data?.error || 'Error al eliminar usuario');
+    }
+  };
+
+  const updateUserRole = async (userId, newRole) => {
+    try {
+      await axios.put(
+        `${API_BASE_URL}/admin/users/${userId}/role`,
+        { role: newRole },
+        axiosConfig
+      );
+      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    } catch (err) {
+      console.error('Error updating user role:', err);
+      setError('Error al actualizar rol');
+    }
+  };
+
+  const toggleUserStatus = async (userId, currentStatus) => {
+    try {
+      await axios.put(
+        `${API_BASE_URL}/admin/users/${userId}/status`,
+        { isActive: !currentStatus },
+        axiosConfig
+      );
+      setUsers(users.map(u => u.id === userId ? { ...u, isActive: !currentStatus } : u));
+    } catch (err) {
+      console.error('Error toggling user status:', err);
+      setError('Error al cambiar estado del usuario');
+    }
+  };
+
   // Overview Section
   const OverviewSection = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -185,7 +258,15 @@ const AdminDashboard = ({ onLogout }) => {
   // Users Section
   const UsersSection = () => (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-6">Gestión de Usuarios</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-white">Gestión de Usuarios</h2>
+        <button
+          onClick={() => setShowAddUserModal(true)}
+          className="px-4 py-2 bg-[#E5B869] text-[#2A3F45] font-semibold rounded-lg hover:bg-[#d4a556] transition-colors"
+        >
+          + Agregar Usuario
+        </button>
+      </div>
       <div className="bg-white/5 backdrop-blur-md rounded-lg border border-white/10 overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -194,7 +275,9 @@ const AdminDashboard = ({ onLogout }) => {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Email</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Teléfono</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Rol</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Estado</th>
               <th className="px-6 py-3 text-center text-sm font-semibold text-gray-200">Reservas</th>
+              <th className="px-6 py-3 text-center text-sm font-semibold text-gray-200">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -204,15 +287,47 @@ const AdminDashboard = ({ onLogout }) => {
                 <td className="px-6 py-4 text-sm text-gray-300">{user.email}</td>
                 <td className="px-6 py-4 text-sm text-gray-300">{user.phone || '-'}</td>
                 <td className="px-6 py-4 text-sm">
+                  <select
+                    value={user.role}
+                    onChange={(e) => updateUserRole(user.id, e.target.value)}
+                    className="px-2 py-1 rounded text-xs bg-[#2A3F45] text-white border border-white/20 focus:outline-none"
+                  >
+                    <option value="PASSENGER">PASSENGER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                </td>
+                <td className="px-6 py-4 text-sm">
                   <span className={`px-3 py-1 rounded text-xs font-semibold ${
-                    user.role === 'ADMIN' 
-                      ? 'bg-red-500/30 text-red-200' 
-                      : 'bg-blue-500/30 text-blue-200'
+                    user.isActive
+                      ? 'bg-green-500/30 text-green-200'
+                      : 'bg-gray-500/30 text-gray-200'
                   }`}>
-                    {user.role}
+                    {user.isActive ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-center text-gray-300 font-semibold">{user.bookingCount}</td>
+                <td className="px-6 py-4 text-sm">
+                  <div className="flex justify-center gap-2">
+                    <button
+                      onClick={() => toggleUserStatus(user.id, user.isActive)}
+                      title={user.isActive ? 'Desactivar' : 'Activar'}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        user.isActive
+                          ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+                          : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
+                      }`}
+                    >
+                      {user.isActive ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button
+                      onClick={() => deleteUser(user.id)}
+                      title="Eliminar"
+                      className="px-2 py-1 rounded text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -411,6 +526,72 @@ const AdminDashboard = ({ onLogout }) => {
                 <button
                   type="button"
                   onClick={() => setShowAddFlightModal(false)}
+                  className="flex-1 px-4 py-2 bg-white/10 text-white rounded hover:bg-white/20 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#2A3F45] rounded-lg p-6 max-w-md w-full border border-white/20">
+            <h2 className="text-xl font-bold text-white mb-4">Agregar Nuevo Usuario</h2>
+            <form onSubmit={createUser} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Nombre completo"
+                value={userFormData.name}
+                onChange={(e) => setUserFormData({...userFormData, name: e.target.value})}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400 focus:outline-none"
+                required
+              />
+              <input
+                type="email"
+                placeholder="Correo electrónico"
+                value={userFormData.email}
+                onChange={(e) => setUserFormData({...userFormData, email: e.target.value})}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400 focus:outline-none"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Contraseña (mínimo 6 caracteres)"
+                value={userFormData.password}
+                onChange={(e) => setUserFormData({...userFormData, password: e.target.value})}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400 focus:outline-none"
+                required
+                minLength="6"
+              />
+              <input
+                type="tel"
+                placeholder="Teléfono (opcional)"
+                value={userFormData.phone}
+                onChange={(e) => setUserFormData({...userFormData, phone: e.target.value})}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400 focus:outline-none"
+              />
+              <select
+                value={userFormData.role}
+                onChange={(e) => setUserFormData({...userFormData, role: e.target.value})}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white focus:outline-none"
+              >
+                <option value="PASSENGER" className="bg-[#2A3F45]">Pasajero</option>
+                <option value="ADMIN" className="bg-[#2A3F45]">Administrador</option>
+              </select>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-[#E5B869] text-[#2A3F45] font-semibold rounded hover:bg-[#d4a556] transition-colors"
+                >
+                  Crear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
                   className="flex-1 px-4 py-2 bg-white/10 text-white rounded hover:bg-white/20 transition-colors"
                 >
                   Cancelar
