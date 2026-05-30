@@ -21,7 +21,7 @@ const AdminDashboard = ({ onLogout }) => {
     totalSeats: 150
   });
 
-  const API_BASE_URL = 'http://localhost:4000/api';
+  const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
   const token = localStorage.getItem('token');
 
   const axiosConfig = {
@@ -213,7 +213,7 @@ const AdminDashboard = ({ onLogout }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-center text-gray-300 font-semibold">{user.bookingCount}</td>
-              </tr>
+               </tr>
             ))}
           </tbody>
         </table>
@@ -234,7 +234,7 @@ const AdminDashboard = ({ onLogout }) => {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Vuelos</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Estado</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-200">Total</th>
-            </tr>
+             </tr>
           </thead>
           <tbody>
             {bookings.map(booking => (
@@ -256,7 +256,7 @@ const AdminDashboard = ({ onLogout }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-gray-300 font-semibold">${booking.totalPrice}</td>
-              </tr>
+               </tr>
             ))}
           </tbody>
         </table>
@@ -293,10 +293,10 @@ const AdminDashboard = ({ onLogout }) => {
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
-              {section === 'overview' && '📊 Resumen'}
-              {section === 'flights' && '✈️ Vuelos'}
-              {section === 'users' && '👥 Usuarios'}
-              {section === 'bookings' && '🎫 Reservas'}
+              {section === 'overview' && 'Resumen'}
+              {section === 'flights' && 'Vuelos'}
+              {section === 'users' && 'Usuarios'}
+              {section === 'bookings' && 'Reservas'}
             </button>
           ))}
         </nav>

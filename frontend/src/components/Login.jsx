@@ -175,21 +175,22 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                 </div>
             </div>
 
-            {/* panel de credenciales para la prueba tecnica */}
+            {/* panel de prueba de roles */}
             <div className="relative z-10 bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 w-full max-w-sm animacion-tarjeta" style={{ animationDelay: '0.1s' }}>
-                <h2 className="text-xl font-bold text-white mb-1">Prueba Técnica</h2>
+                <h2 className="text-xl font-bold text-white mb-1">Prueba de Roles</h2>
                 <p className="text-gray-300 text-sm mb-6">Utilice estas credenciales para validar el sistema.</p>
 
                 <div className="space-y-4 mb-6">
+                    {/* Admin */}
                     <div className="bg-white/10 border border-white/10 p-4 rounded-lg flex justify-between items-center group">
                         <div>
-                            <p className="text-[#E5B869] text-xs font-bold mb-1 uppercase">Usuario de prueba 1</p>
-                            <p className="text-white text-sm font-medium">juan@test.com</p>
+                            <p className="text-[#E5B869] text-xs font-bold mb-1 uppercase">Administrador</p>
+                            <p className="text-white text-sm font-medium">johnlievanom@gmail.com</p>
                             <p className="text-gray-400 text-xs mt-1">Clave: 123456</p>
                         </div>
                         <button
                             type="button"
-                            onClick={() => handleAutoFill('juan@test.com', '123456')}
+                            onClick={() => handleAutoFill('johnlievanom@gmail.com', '123456')}
                             className="p-2 bg-white/5 hover:bg-white/20 rounded-md border border-white/10 text-white/70 hover:text-white transition-all"
                             title="Autocompletar datos"
                         >
@@ -199,15 +200,16 @@ const Login = ({ onLogin, onRegisterClick, onForgotClick, onBack }) => {
                         </button>
                     </div>
 
+                    {/* Pasajero */}
                     <div className="bg-white/10 border border-white/10 p-4 rounded-lg flex justify-between items-center group">
                         <div>
-                            <p className="text-[#E5B869] text-xs font-bold mb-1 uppercase">Usuario de prueba 2</p>
-                            <p className="text-white text-sm font-medium">sebas@test.com</p>
+                            <p className="text-[#E5B869] text-xs font-bold mb-1 uppercase">Pasajero</p>
+                            <p className="text-white text-sm font-medium">juan@test.com</p>
                             <p className="text-gray-400 text-xs mt-1">Clave: 123456</p>
                         </div>
                         <button
                             type="button"
-                            onClick={() => handleAutoFill('sebas@test.com', '123456')}
+                            onClick={() => handleAutoFill('juan@test.com', '123456')}
                             className="p-2 bg-white/5 hover:bg-white/20 rounded-md border border-white/10 text-white/70 hover:text-white transition-all"
                             title="Autocompletar datos"
                         >
