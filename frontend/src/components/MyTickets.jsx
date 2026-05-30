@@ -32,12 +32,12 @@ const MyTickets = () => {
     const getFlightStatusConfig = (status) => {
         switch (status) {
             case 'DELAYED':
-                return { text: 'DELAYED', classes: 'bg-yellow-100 text-yellow-800 border-yellow-300 animate-pulse' };
+                return { text: 'RETRASADO', classes: 'bg-yellow-100 text-yellow-800 border-yellow-300 animate-pulse' };
             case 'CANCELLED':
-                return { text: 'CANCELLED', classes: 'bg-red-100 text-red-800 border-red-300' };
-            case 'SCHEDULED':
+                return { text: 'CANCELADO', classes: 'bg-red-100 text-red-800 border-red-300' };
+            case 'ON_TIME':
             default:
-                return { text: 'SCHEDULED', classes: 'bg-green-100 text-green-800 border-green-300' };
+                return { text: 'A TIEMPO', classes: 'bg-green-100 text-green-800 border-green-300' };
         }
     };
 
@@ -77,7 +77,15 @@ const MyTickets = () => {
                     {/* Cabecera de la Reserva */}
                     <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                         <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Reserva Confirmada</p>
+                            <p className={`text-xs uppercase tracking-wider font-semibold ${
+                                reservation.status === 'CANCELLED' ? 'text-red-500' :
+                                reservation.status === 'PENDING' ? 'text-yellow-500' :
+                                'text-gray-500'
+                            }`}>
+                                {reservation.status === 'CANCELLED' ? 'Reserva Cancelada' :
+                                 reservation.status === 'PENDING' ? 'Reserva Pendiente' :
+                                 'Reserva Confirmada'}
+                            </p>
                             <p className="text-sm font-bold text-[#2A3F45]">Ref: RES-{reservation.id.toString().padStart(6, '0')}</p>
                         </div>
                         <div className="text-right">
