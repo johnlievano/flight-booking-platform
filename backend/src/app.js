@@ -24,7 +24,7 @@ dotenv.config();
 const app = express();
 
 // Manejar preflight requests explícitamente
-app.options('*', cors());
+app.options('(.*)', cors());
 
 // Permite solicitudes desde el frontend
 app.use(cors({
