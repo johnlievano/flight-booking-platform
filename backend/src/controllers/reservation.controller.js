@@ -45,7 +45,7 @@ export const createReservation = async (req, res) => {
             }
 
             for (const flight of flights) {
-                if (flight.status !== "SCHEDULED") {
+                if (flight.status === "CANCELLED") {
                     throw new Error(`El vuelo ${flight.id} no esta disponible`);
                 }
             }
