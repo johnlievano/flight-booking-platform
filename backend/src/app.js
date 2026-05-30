@@ -33,7 +33,9 @@ app.use(cors({
       process.env.FRONTEND_URL,
     ].filter(Boolean);
 
-    if (!origin || allowed.includes(origin)) {
+    const isVercelPreview = origin && origin.endsWith('.vercel.app');
+
+    if (!origin || allowed.includes(origin) || isVercelPreview) {
       callback(null, true);
     } else {
       callback(new Error(`CORS bloqueado para: ${origin}`));
