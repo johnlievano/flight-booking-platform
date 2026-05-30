@@ -107,6 +107,47 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
+  const updateUserStatus = async (userId, isActive) => {
+    try {
+      await axios.put(
+        `${API_BASE_URL}/admin/users/${userId}/status`,
+        { isActive },
+        axiosConfig
+      );
+      await fetchAllData();
+    } catch (err) {
+      console.error('Error updating user status:', err);
+      setError('Error al actualizar el estado del usuario');
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    const confirmed = window.confirm('¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.');
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${API_BASE_URL}/admin/users/${userId}`, axiosConfig);
+      await fetchAllData();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError('Error al eliminar el usuario');
+    }
+  };
+
+  const updateBookingStatus = async (bookingId, newStatus) => {
+    try {
+      await axios.put(
+        `${API_BASE_URL}/admin/bookings/${bookingId}/status`,
+        { status: newStatus },
+        axiosConfig
+      );
+      await fetchAllData();
+    } catch (err) {
+      console.error('Error updating booking status:', err);
+      setError('Error al actualizar el estado de la reserva');
+    }
+  };
+
   // Overview Section
   const OverviewSection = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -195,6 +236,7 @@ const AdminDashboard = ({ onLogout }) => {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Teléfono</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-200">Rol</th>
               <th className="px-6 py-3 text-center text-sm font-semibold text-gray-200">Reservas</th>
+              <th className="px-6 py-3 text-center text-sm font-semibold text-gray-200">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -213,7 +255,21 @@ const AdminDashboard = ({ onLogout }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-center text-gray-300 font-semibold">{user.bookingCount}</td>
-               </tr>
+                <td className="px-6 py-4 text-sm text-center space-x-2">
+                  <button
+                    onClick={() => updateUserStatus(user.id, !user.isActive)}
+                    className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${user.isActive ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                  >
+                    {user.isActive ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button
+                    onClick={() => deleteUser(user.id)}
+                    className="px-3 py-1 rounded text-xs font-semibold bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -245,15 +301,15 @@ const AdminDashboard = ({ onLogout }) => {
                   {booking.flights.map(rf => `${rf.flight?.origin?.code}-${rf.flight?.destination?.code}`).join(', ')}
                 </td>
                 <td className="px-6 py-4 text-sm">
-                  <span className={`px-3 py-1 rounded text-xs font-semibold ${
-                    booking.status === 'CONFIRMED' 
-                      ? 'bg-green-500/30 text-green-200' 
-                      : booking.status === 'PENDING'
-                      ? 'bg-yellow-500/30 text-yellow-200'
-                      : 'bg-red-500/30 text-red-200'
-                  }`}>
-                    {booking.status}
-                  </span>
+                  <select
+                    value={booking.status}
+                    onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
+                    className="w-full bg-[#2A3F45] text-white rounded-lg px-3 py-2 border border-white/20 focus:outline-none"
+                  >
+                    <option value="CONFIRMED">CONFIRMED</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-gray-300 font-semibold">${booking.totalPrice}</td>
                </tr>
@@ -275,7 +331,7 @@ const AdminDashboard = ({ onLogout }) => {
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:relative md:translate-x-0 transition-transform duration-300`}>
         <div className="p-6 text-center border-b border-white/10">
-          <h1 className="text-2xl font-bold text-[#E5B869]">AeroManage</h1>
+          <h1 className="text-2xl font-bold text-[#E5B869]">AereoManage</h1>
           <p className="text-xs text-gray-400 mt-1">Panel Administrativo</p>
         </div>
 
@@ -318,7 +374,7 @@ const AdminDashboard = ({ onLogout }) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
         <header className="md:hidden bg-[#2A3F45] shadow-md px-4 py-3 flex justify-between items-center border-b border-white/10">
-          <h1 className="text-lg font-bold text-white">AeroManage</h1>
+          <h1 className="text-lg font-bold text-white">AereoManage</h1>
           <button onClick={() => setIsSidebarOpen(true)} className="text-gray-300 hover:text-white">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -327,7 +383,7 @@ const AdminDashboard = ({ onLogout }) => {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-br from-[#2A3F45] to-[#1a2a2f]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-linear-to-br from-[#2A3F45] to-[#1a2a2f]">
           {error && (
             <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200">
               {error}

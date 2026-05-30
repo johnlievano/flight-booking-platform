@@ -11,7 +11,10 @@ import {
   deleteFlight,
   updateFlightStatus,
   getAllUsers,
-  getAllBookings
+  updateUserStatus,
+  deleteUser,
+  getAllBookings,
+  updateBookingStatus
 } from '../controllers/admin.controller.js';
 
 const router = express.Router();
@@ -28,8 +31,11 @@ router.put('/flights/:id/status', updateFlightStatus);
 
 // Rutas de usuarios
 router.get('/users', getAllUsers);
+router.put('/users/:id/status', updateUserStatus);
+router.delete('/users/:id', deleteUser);
 
 // Rutas de reservas
 router.get('/bookings', getAllBookings);
+router.put('/bookings/:id/status', updateBookingStatus);
 
 export default router;

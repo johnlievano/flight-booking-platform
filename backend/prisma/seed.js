@@ -124,8 +124,7 @@ async function main() {
   const seatsData = [];
 
   for (const flight of allFlights) {
-    const economyCount = 120;
-    const businessCount = 30;
+    const occupancyChance = 0.1 + Math.random() * 0.5; // entre 10% y 60%
 
     // Asientos de economía (1A-1F, 2A-2F, etc.)
     for (let row = 1; row <= 20; row++) {
@@ -134,7 +133,7 @@ async function main() {
         seatsData.push({
           flightId: flight.id,
           number: `${row}${seatLetter}`,
-          isOccupied: false
+          isOccupied: Math.random() < occupancyChance
         });
       }
     }
@@ -146,7 +145,7 @@ async function main() {
         seatsData.push({
           flightId: flight.id,
           number: `${row}${seatLetter}B`, // B para indicar Business
-          isOccupied: false
+          isOccupied: Math.random() < occupancyChance
         });
       }
     }

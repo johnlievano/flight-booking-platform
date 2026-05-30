@@ -210,6 +210,44 @@ export const updateFlightStatus = async (req, res) => {
   }
 };
 
+// PUT /api/admin/users/:id/status - Actualizar si el usuario está activo
+export const updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ error: 'El campo isActive debe ser booleano' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { isActive }
+    });
+
+    res.json({ message: 'Estado del usuario actualizado', user });
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({ error: 'Error al actualizar el estado del usuario' });
+  }
+};
+
+// DELETE /api/admin/users/:id - Eliminar usuario permanentemente
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.user.delete({
+      where: { id: parseInt(id) }
+    });
+
+    res.json({ message: 'Usuario eliminado exitosamente' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Error al eliminar el usuario' });
+  }
+};
+
 // GET /api/admin/users - Listar todos los usuarios con conteo de reservas
 export const getAllUsers = async (req, res) => {
   try {
@@ -237,6 +275,51 @@ export const getAllUsers = async (req, res) => {
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+};
+
+// PUT /api/admin/bookings/:id/status - Actualizar estado de una reserva
+export const updateBookingStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const validStatuses = ['CONFIRMED', 'PENDING', 'CANCELLED'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Estado inválido' });
+    }
+
+    const reservation = await prisma.reservation.update({
+      where: { id: parseInt(id) },
+      data: { status },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        flights: {
+          include: {
+            flight: {
+              include: {
+                airline: true,
+                origin: true,
+                destination: true
+              }
+            }
+          }
+        },
+        passengers: true,
+        tickets: true
+      }
+    });
+
+    res.json({ message: 'Estado de la reserva actualizado', reservation });
+  } catch (error) {
+    console.error('Error updating booking status:', error);
+    res.status(500).json({ error: 'Error al actualizar el estado de la reserva' });
   }
 };
 
