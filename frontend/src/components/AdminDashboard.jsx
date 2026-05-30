@@ -331,9 +331,9 @@ const AdminDashboard = ({ onLogout }) => {
                     onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
                     className="w-full bg-[#2A3F45] text-white rounded-lg px-3 py-2 border border-white/20 focus:outline-none"
                   >
-                    <option value="CONFIRMED">CONFIRMED</option>
-                    <option value="PENDING">PENDING</option>
-                    <option value="CANCELLED">CANCELLED</option>
+                    <option value="CONFIRMED">Confirmado</option>
+                    <option value="PENDING">Pendiente</option>
+                    <option value="CANCELLED">Cancelado</option>
                   </select>
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-gray-300 font-semibold">${booking.totalPrice}</td>
