@@ -1,13 +1,5 @@
-/**
-     Servidor principal de la API
-    - Configura Express
-    - Conecta middlewares
-    - Define rutas básicas
- */
-
 import userRoutes from "./routes/user.routes.js";
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
 import prisma from "./config/prisma.js";
 import airlineRoutes from "./routes/airline.routes.js";
@@ -16,68 +8,38 @@ import flightRoutes from "./routes/flight.routes.js";
 import reservationRoutes from "./routes/reservation.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 
-// Carga variables del archivo .env
 dotenv.config();
 
-// Crea instancia de Express
 const app = express();
 
-// Primero el JSON parser
+// CORS manual — cubre todas las respuestas incluyendo errores de middlewares
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(express.json());
 
-// Luego el preflight
-app.options('/{*path}', cors());
-
-// Luego el CORS
-app.use(cors({
-  origin: (origin, callback) => {
-    const allowed = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'https://flight-booking-platform-eight.vercel.app',
-      process.env.FRONTEND_URL,
-    ].filter(Boolean);
-
-    const isVercelPreview = origin && origin.endsWith('.vercel.app');
-
-    if (!origin || allowed.includes(origin) || isVercelPreview) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS bloqueado para: ${origin}`));
-    }
-  },
-  credentials: true,
-}));
-
-// Rutas de usuario
 app.use("/api/users", userRoutes);
-
-// Rutas de aerolíneas
 app.use("/api/airlines", airlineRoutes);
-
-//Rutas de Aereopuertos
 app.use("/api/airports", airportRoutes);
-
-//Rutas de vuelos
 app.use("/api/flights", flightRoutes);
-
-//Rutas de reservación
 app.use("/api/reservations", reservationRoutes);
-
-// Rutas de administración
 app.use("/api/admin", adminRoutes);
 
-/**
-  Ruta básica para probar que el servidor funciona
- */
 app.get("/", (req, res) => {
   res.json({ message: "Flight Booking API running" });
 });
 
-/**
- * Ruta para probar conexión con la base de datos
- * Consulta todos los usuarios
- */
 app.get("/test-db", async (req, res) => {
   try {
     const users = await prisma.user.findMany();
@@ -88,10 +50,7 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-// Puerto definido en .env o 4000 por defecto
 const PORT = process.env.PORT || 4000;
-
-// Levanta servidor
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
