@@ -23,6 +23,9 @@ dotenv.config();
 // Crea instancia de Express
 const app = express();
 
+// Manejar preflight requests explícitamente
+app.options('*', cors());
+
 // Permite solicitudes desde el frontend
 app.use(cors({
   origin: (origin, callback) => {
