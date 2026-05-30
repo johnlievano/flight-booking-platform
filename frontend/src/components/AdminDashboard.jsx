@@ -24,6 +24,17 @@ const AdminDashboard = ({ onLogout }) => {
   const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
   const token = localStorage.getItem('token');
 
+  const currentUserId = (() => {
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.userId || null;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  })();
+
   const axiosConfig = {
     headers: {
       Authorization: `Bearer ${token}`
@@ -108,6 +119,11 @@ const AdminDashboard = ({ onLogout }) => {
   };
 
   const updateUserStatus = async (userId, isActive) => {
+    if (userId === currentUserId) {
+      setError('No puedes cambiar el estado de tu propia cuenta de administrador');
+      return;
+    }
+
     try {
       await axios.put(
         `${API_BASE_URL}/admin/users/${userId}/status`,
@@ -122,6 +138,11 @@ const AdminDashboard = ({ onLogout }) => {
   };
 
   const deleteUser = async (userId) => {
+    if (userId === currentUserId) {
+      setError('No puedes eliminar tu propia cuenta de administrador');
+      return;
+    }
+
     const confirmed = window.confirm('¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.');
     if (!confirmed) return;
 
@@ -135,12 +156,14 @@ const AdminDashboard = ({ onLogout }) => {
   };
 
   const updateBookingStatus = async (bookingId, newStatus) => {
+    if (!bookingId) {
+      setError('Reserva inválida');
+      return;
+    }
+
+    const endpoint = `${API_BASE_URL}/admin/bookings/${bookingId}/status`;
     try {
-      await axios.put(
-        `${API_BASE_URL}/admin/bookings/${bookingId}/status`,
-        { status: newStatus },
-        axiosConfig
-      );
+      await axios.put(endpoint, { status: newStatus }, axiosConfig);
       await fetchAllData();
     } catch (err) {
       console.error('Error updating booking status:', err);
@@ -258,13 +281,15 @@ const AdminDashboard = ({ onLogout }) => {
                 <td className="px-6 py-4 text-sm text-center space-x-2">
                   <button
                     onClick={() => updateUserStatus(user.id, !user.isActive)}
-                    className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${user.isActive ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                    disabled={user.id === currentUserId}
+                    className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${user.isActive ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600'} ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed hover:bg-none' : ''}`}
                   >
                     {user.isActive ? 'Desactivar' : 'Activar'}
                   </button>
                   <button
                     onClick={() => deleteUser(user.id)}
-                    className="px-3 py-1 rounded text-xs font-semibold bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                    disabled={user.id === currentUserId}
+                    className={`px-3 py-1 rounded text-xs font-semibold bg-white/10 text-white border border-white/20 ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed hover:bg-none' : 'hover:bg-white/20'}`}
                   >
                     Eliminar
                   </button>

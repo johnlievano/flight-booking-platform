@@ -37,5 +37,6 @@ router.delete('/users/:id', deleteUser);
 // Rutas de reservas
 router.get('/bookings', getAllBookings);
 router.put('/bookings/:id/status', updateBookingStatus);
+router.patch('/bookings/:id/status', updateBookingStatus);
 
 export default router;

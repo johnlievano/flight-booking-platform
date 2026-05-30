@@ -216,12 +216,17 @@ export const updateUserStatus = async (req, res) => {
     const { id } = req.params;
     const { isActive } = req.body;
 
+    const targetUserId = parseInt(id);
+    if (targetUserId === req.userId) {
+      return res.status(403).json({ error: 'No se puede cambiar el estado de la propia cuenta de administrador' });
+    }
+
     if (typeof isActive !== 'boolean') {
       return res.status(400).json({ error: 'El campo isActive debe ser booleano' });
     }
 
     const user = await prisma.user.update({
-      where: { id: parseInt(id) },
+      where: { id: targetUserId },
       data: { isActive }
     });
 
@@ -236,9 +241,14 @@ export const updateUserStatus = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    const targetUserId = parseInt(id);
+
+    if (targetUserId === req.userId) {
+      return res.status(403).json({ error: 'No se puede eliminar la propia cuenta de administrador' });
+    }
 
     await prisma.user.delete({
-      where: { id: parseInt(id) }
+      where: { id: targetUserId }
     });
 
     res.json({ message: 'Usuario eliminado exitosamente' });
