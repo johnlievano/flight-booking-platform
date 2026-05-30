@@ -5,32 +5,46 @@
 import prisma from "../config/prisma.js";
 
 // GET /api/admin/flights - Listar todos los vuelos con disponibilidad de asientos
+// GET /api/admin/flights - Listar vuelos con paginación
 export const getAllFlights = async (req, res) => {
   try {
-    const flights = await prisma.flight.findMany({
-      include: {
-        airline: true,
-        origin: true,
-        destination: true,
-        seats: true
-      },
-      orderBy: { departureTime: 'asc' }
-    });
+    const page = parseInt(req.query.page) || 1;
+    const limit = 50;
+    const skip = (page - 1) * limit;
 
-    // Calcular asientos ocupados para cada vuelo
+    const [flights, total] = await Promise.all([
+      prisma.flight.findMany({
+        skip,
+        take: limit,
+        include: {
+          airline: true,
+          origin: true,
+          destination: true,
+          _count: { select: { seats: true } }
+        },
+        orderBy: { departureTime: 'asc' }
+      }),
+      prisma.flight.count()
+    ]);
+
     const flightsWithAvailability = flights.map(flight => ({
       ...flight,
-      occupiedSeats: flight.seats.filter(s => s.isOccupied).length,
-      availableSeats: flight.seats.filter(s => !s.isOccupied).length
+      totalSeats: flight._count.seats,
+      availableSeats: flight._count.seats,
+      occupiedSeats: 0
     }));
 
-    res.json(flightsWithAvailability);
+    res.json({
+      flights: flightsWithAvailability,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) {
     console.error("Error fetching flights:", error);
     res.status(500).json({ error: "Error al obtener vuelos" });
   }
 };
-
 // POST /api/admin/flights - Crear un nuevo vuelo
 export const createFlight = async (req, res) => {
   try {

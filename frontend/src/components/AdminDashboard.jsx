@@ -36,30 +36,30 @@ const AdminDashboard = ({ onLogout }) => {
   }, []);
 
   const fetchAllData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [flightsRes, usersRes, bookingsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/admin/flights`, axiosConfig),
-        axios.get(`${API_BASE_URL}/admin/users`, axiosConfig),
-        axios.get(`${API_BASE_URL}/admin/bookings`, axiosConfig)
-      ]);
+  setLoading(true);
+  setError(null);
+  try {
+    const [flightsRes, usersRes, bookingsRes] = await Promise.all([
+      axios.get(`${API_BASE_URL}/admin/flights`, axiosConfig),
+      axios.get(`${API_BASE_URL}/admin/users`, axiosConfig),
+      axios.get(`${API_BASE_URL}/admin/bookings`, axiosConfig)
+    ]);
 
-      setFlights(flightsRes.data);
-      setUsers(usersRes.data);
-      setBookings(bookingsRes.data);
-      setStats({
-        totalFlights: flightsRes.data.length,
-        totalUsers: usersRes.data.length,
-        totalBookings: bookingsRes.data.length
-      });
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Error al cargar datos');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setFlights(flightsRes.data.flights);  // <-- cambio aquí
+    setUsers(usersRes.data);
+    setBookings(bookingsRes.data);
+    setStats({
+      totalFlights: flightsRes.data.total,  // <-- cambio aquí
+      totalUsers: usersRes.data.length,
+      totalBookings: bookingsRes.data.length
+    });
+  } catch (err) {
+    console.error('Error fetching data:', err);
+    setError('Error al cargar datos');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const updateFlightStatus = async (flightId, newStatus) => {
     try {
