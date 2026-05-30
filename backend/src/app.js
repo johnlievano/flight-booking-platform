@@ -16,17 +16,19 @@ import flightRoutes from "./routes/flight.routes.js";
 import reservationRoutes from "./routes/reservation.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 
-
 // Carga variables del archivo .env
 dotenv.config();
 
 // Crea instancia de Express
 const app = express();
 
-// Manejar preflight requests explícitamente
+// Primero el JSON parser
+app.use(express.json());
+
+// Luego el preflight
 app.options('/{*path}', cors());
 
-// Permite solicitudes desde el frontend
+// Luego el CORS
 app.use(cors({
   origin: (origin, callback) => {
     const allowed = [
@@ -46,9 +48,6 @@ app.use(cors({
   },
   credentials: true,
 }));
-
-// Permite recibir JSON en las peticiones
-app.use(express.json());
 
 // Rutas de usuario
 app.use("/api/users", userRoutes);
@@ -74,7 +73,6 @@ app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "Flight Booking API running" });
 });
-
 
 /**
  * Ruta para probar conexión con la base de datos
