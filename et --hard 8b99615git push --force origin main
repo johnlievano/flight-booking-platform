@@ -1,0 +1,5 @@
+[33m8b99615[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix(admin): remove hoisted console.log in BookingsSection, add dropdown arrow to booking status select
+[33m883dad1[m fix(admin): remove hoisted console.log in BookingsSection, add dropdown arrow to booking status select
+[33m31b83d5[m fix: estados de vuelo y reserva en MyTickets alineados con backend
+[33md9db6fa[m fix: estados de vuelo y reserva en MyTickets alineados con backend
+[33medac6a1[m Arreglos del dashboard del admin

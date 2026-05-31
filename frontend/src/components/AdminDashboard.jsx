@@ -268,14 +268,15 @@ const AdminDashboard = ({ onLogout }) => {
   const [totalFlights, setTotalFlights] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingFlights, setLoadingFlights] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const fetchFlights = async (p, q) => {
     setLoadingFlights(true);
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/admin/flights?page=${p}&search=${encodeURIComponent(q)}`,
-        axiosConfig,
-      );
+  `${API_BASE_URL}/admin/flights?page=${p}&search=${encodeURIComponent(q)}&t=${Date.now()}`,
+  axiosConfig,
+);
       setLocalFlights(res.data.flights);
       setTotalFlights(res.data.total);
       setTotalPages(res.data.totalPages);
@@ -288,9 +289,11 @@ const AdminDashboard = ({ onLogout }) => {
 
   useEffect(() => {
     fetchFlights(1, "");
+    setInitialized(true);
   }, []);
 
   useEffect(() => {
+    if (!initialized) return;
     const timer = setTimeout(() => {
       setPage(1);
       fetchFlights(1, search);
@@ -299,6 +302,7 @@ const AdminDashboard = ({ onLogout }) => {
   }, [search]);
 
   useEffect(() => {
+    if (!initialized) return;
     fetchFlights(page, search);
   }, [page]);
 
@@ -308,11 +312,18 @@ const AdminDashboard = ({ onLogout }) => {
         <h2 className="text-2xl font-bold text-white">Gestión de Vuelos</h2>
         <div className="flex items-center gap-3">
           <input
-            placeholder="Buscar por ID (#473) o ruta (BOG-LIM)..."
+            placeholder="Buscar por ID (#2563) o ruta (BOG-LIM)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchFlights(1, search)}
             className="px-3 py-2 bg-white/5 text-white rounded-lg border border-white/10 focus:outline-none text-sm w-72"
           />
+          <button
+            onClick={() => { setPage(1); fetchFlights(1, search); }}
+            className="px-4 py-2 bg-white/10 text-white text-sm rounded-lg border border-white/10 hover:bg-white/20 transition-colors"
+          >
+            Buscar
+          </button>
           <button
             onClick={() => setShowAddFlightModal(true)}
             className="px-4 py-2 bg-[#E5B869] text-[#2A3F45] font-semibold rounded-lg hover:bg-[#d4a556] transition-colors whitespace-nowrap"

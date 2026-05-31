@@ -10,28 +10,32 @@ import bcrypt from "bcrypt";
 export const getAllFlights = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const fetchAll = req.query.all === 'true';
+    const limit = 20;
     const skip = (page - 1) * limit;
+    const search = req.query.search?.trim() || '';
 
-    const flightQuery = {
-      include: {
-        airline: true,
-        origin: true,
-        destination: true,
-        _count: { select: { seats: true } }
-      },
-      orderBy: { departureTime: 'asc' }
-    };
-
-    if (!fetchAll) {
-      flightQuery.skip = skip;
-      flightQuery.take = limit;
-    }
+    const where = search ? {
+  OR: [
+    { origin: { code: { contains: search.toUpperCase() } } },
+    { destination: { code: { contains: search.toUpperCase() } } },
+    ...(!isNaN(parseInt(search)) ? [{ id: { equals: parseInt(search) } }] : [])
+  ]
+} : {};
 
     const [flights, total] = await Promise.all([
-      prisma.flight.findMany(flightQuery),
-      prisma.flight.count()
+      prisma.flight.findMany({
+        skip,
+        take: limit,
+        where,
+        include: {
+          airline: true,
+          origin: true,
+          destination: true,
+          _count: { select: { seats: true } }
+        },
+        orderBy: { departureTime: 'asc' }
+      }),
+      prisma.flight.count({ where })
     ]);
 
     const flightsWithAvailability = flights.map(flight => ({
@@ -45,13 +49,14 @@ export const getAllFlights = async (req, res) => {
       flights: flightsWithAvailability,
       total,
       page,
-      totalPages: fetchAll ? 1 : Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit) || 1
     });
   } catch (error) {
     console.error("Error fetching flights:", error);
     res.status(500).json({ error: "Error al obtener vuelos" });
   }
 };
+
 // POST /api/admin/flights - Crear un nuevo vuelo
 export const createFlight = async (req, res) => {
   try {
