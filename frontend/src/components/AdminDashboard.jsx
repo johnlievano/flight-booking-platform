@@ -63,67 +63,30 @@ const AdminDashboard = ({ onLogout }) => {
   }, []);
 
   const fetchAllData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [flightsRes, usersRes, bookingsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/admin/flights?all=true`, axiosConfig),
-        axios.get(`${API_BASE_URL}/admin/users`, axiosConfig),
-        axios.get(`${API_BASE_URL}/admin/bookings`, axiosConfig),
-      ]);
+  setLoading(true);
+  setError(null);
+  try {
+    const [flightsRes, usersRes, bookingsRes] = await Promise.all([
+      axios.get(`${API_BASE_URL}/admin/flights`, axiosConfig),
+      axios.get(`${API_BASE_URL}/admin/users`, axiosConfig),
+      axios.get(`${API_BASE_URL}/admin/bookings`, axiosConfig),
+    ]);
 
-      // Some backends may still return a paginated subset even when asking for all.
-      // To avoid overwhelming the server we fetch remaining pages in small batches
-      // (and skip page 1 if we already have it).
-      const initialFlights = flightsRes.data.flights || [];
-      const total = flightsRes.data.total || initialFlights.length;
-      let allFlights = initialFlights.slice();
-      const perPage = 50;
-      const returnedPages = flightsRes.data.totalPages || Math.ceil(total / perPage);
-      const pagesToFetch = Math.max(returnedPages, Math.ceil(total / perPage));
-
-      if (initialFlights.length < total && pagesToFetch > 0) {
-        const batchSize = 10; // fetch 10 pages concurrently at most
-        try {
-          for (let start = 1; start <= pagesToFetch; start += batchSize) {
-            const end = Math.min(start + batchSize - 1, pagesToFetch);
-            const chunk = [];
-            for (let p = start; p <= end; p++) {
-              // skip page 1 when we already have initialFlights from it
-              if (p === 1 && initialFlights.length > 0) continue;
-              chunk.push(
-                axios.get(`${API_BASE_URL}/admin/flights?page=${p}&limit=${perPage}`, axiosConfig),
-              );
-            }
-            if (chunk.length === 0) continue;
-            const chunkRes = await Promise.all(chunk);
-            chunkRes.forEach((r) => {
-              allFlights = allFlights.concat(r.data.flights || []);
-            });
-          }
-        } catch (err) {
-          console.error('Error fetching flight pages in batches:', err);
-          // fallback: keep whatever we managed to load
-          setError('No se pudieron cargar todas las páginas de vuelos, mostrando las disponibles');
-        }
-      }
-
-      setFlights(allFlights);
-      setUsers(usersRes.data);
-      setBookings(bookingsRes.data);
-      setStats({
-        totalFlights: flightsRes.data.total, // total number reported by backend
-        totalUsers: usersRes.data.length,
-        totalBookings: bookingsRes.data.length,
-      });
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Error al cargar datos");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    setFlights(flightsRes.data.flights);
+    setUsers(usersRes.data);
+    setBookings(bookingsRes.data);
+    setStats({
+      totalFlights: flightsRes.data.total,
+      totalUsers: usersRes.data.length,
+      totalBookings: bookingsRes.data.length,
+    });
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    setError("Error al cargar datos");
+  } finally {
+    setLoading(false);
+  }
+};
   const updateFlightStatus = async (flightId, newStatus) => {
     try {
       await axios.put(
@@ -299,216 +262,161 @@ const AdminDashboard = ({ onLogout }) => {
 
   // Flights Section
   const FlightsSection = () => {
-    const [search, setSearch] = useState("");
-    const [searchType, setSearchType] = useState("all");
-    const [page, setPage] = useState(1);
-    const perPage = 10;
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [localFlights, setLocalFlights] = useState([]);
+  const [totalFlights, setTotalFlights] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingFlights, setLoadingFlights] = useState(false);
 
-    useEffect(() => {
-      setPage(1);
-    }, [search, searchType]);
-
-    const filteredFlights = useMemo(() => {
-      const query = search.trim().toLowerCase();
-      if (!query) return flights;
-
-      return flights.filter((flight) => {
-        const idMatch = flight.id?.toString().includes(query);
-        const routeCode = `${flight.origin?.code || ""}-${flight.destination?.code || ""}`.toLowerCase();
-        const airlineMatch = flight.airline?.name?.toLowerCase().includes(query);
-        const originCode = flight.origin?.code?.toLowerCase() || "";
-        const destinationCode = flight.destination?.code?.toLowerCase() || "";
-        const originMatch = flight.origin?.name?.toLowerCase().includes(query);
-        const destMatch = flight.destination?.name?.toLowerCase().includes(query);
-
-        switch (searchType) {
-          case "id":
-            return idMatch;
-          case "route":
-            return routeCode.includes(query);
-          case "airline":
-            return airlineMatch;
-          case "airport":
-            return originCode.includes(query) || destinationCode.includes(query) || originMatch || destMatch;
-          default:
-            return (
-              idMatch ||
-              routeCode.includes(query) ||
-              airlineMatch ||
-              originCode.includes(query) ||
-              destinationCode.includes(query) ||
-              originMatch ||
-              destMatch
-            );
-        }
-      });
-    }, [flights, search, searchType]);
-
-    const totalPages = Math.max(1, Math.ceil(filteredFlights.length / perPage));
-    const currentPage = Math.min(page, totalPages);
-    const start = (currentPage - 1) * perPage;
-    const pageFlights = filteredFlights.slice(start, start + perPage);
-
-    const getPlaceholder = () => {
-      switch (searchType) {
-        case "id":
-          return "Buscar por ID de vuelo";
-        case "route":
-          return "Buscar por ruta (BOG-LIM)";
-        case "airline":
-          return "Buscar por aerolínea";
-        case "airport":
-          return "Buscar por aeropuerto";
-        default:
-          return "Buscar por ID, ruta, aerolínea o aeropuerto";
-      }
-    };
-
-    return (
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-bold text-white">Gestión de Vuelos</h2>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <select
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
-              className="px-3 py-2 bg-white/5 text-white rounded-lg border border-white/10 focus:outline-none text-sm w-full sm:w-44"
-            >
-              <option value="all">Buscar en todo</option>
-              <option value="id">ID de vuelo</option>
-              <option value="route">Ruta</option>
-              <option value="airline">Aerolínea</option>
-              <option value="airport">Aeropuerto</option>
-            </select>
-            <input
-              placeholder={getPlaceholder()}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-2 bg-white/5 text-white rounded-lg border border-white/10 focus:outline-none text-sm w-full sm:w-72"
-            />
-            <button
-              onClick={() => setShowAddFlightModal(true)}
-              className="px-4 py-2 bg-[#E5B869] text-[#2A3F45] font-semibold rounded-lg hover:bg-[#d4a556] transition-colors whitespace-nowrap"
-            >
-              + Agregar Vuelo
-            </button>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center text-gray-300 py-8">
-            Cargando vuelos...
-          </div>
-        ) : (
-          <>
-            <div className="bg-white/5 backdrop-blur-md rounded-lg border border-white/10 overflow-x-auto">
-              <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10 bg-white/10">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">
-                    ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">
-                    Aerolínea
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">
-                    Ruta
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">
-                    Salida
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">
-                    Asientos
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">
-                    Precio
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-200">
-                    Estado
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {pageFlights.length > 0 ? (
-                  pageFlights.map((flight) => (
-                    <tr
-                      key={flight.id}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-gray-400 font-mono">
-                        #{flight.id}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-300">
-                        {flight.airline?.name}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-white">
-                        {flight.origin?.code} → {flight.destination?.code}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-300">
-                        {new Date(flight.departureTime).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-300">
-                        {flight.availableSeats}/{flight.totalSeats}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-300">
-                        ${flight.price?.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={flight.status}
-                          onChange={(e) => updateFlightStatus(flight.id, e.target.value)}
-                          style={{ colorScheme: "dark" }}
-                          className={`px-2 py-1 rounded text-xs font-semibold border focus:outline-none cursor-pointer ${
-                            flight.status === "ON_TIME"
-                              ? "bg-green-500/20 text-green-300 border-green-500/50"
-                              : flight.status === "DELAYED"
-                                ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/50"
-                                : "bg-red-500/20 text-red-300 border-red-500/50"
-                          }`}
-                        >
-                          <option value="ON_TIME">A Tiempo</option>
-                          <option value="DELAYED">Retrasado</option>
-                          <option value="CANCELLED">Cancelado</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="px-4 py-8 text-center text-gray-400">
-                      No se encontraron vuelos.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-            <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-gray-400">
-              Página {currentPage} de {totalPages} · {filteredFlights.length} vuelos
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 bg-white/5 hover:bg-white/10 text-white text-sm rounded-lg border border-white/10 disabled:opacity-40 transition-colors"
-              >
-                ← Anterior
-              </button>
-              <button
-                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 bg-white/5 hover:bg-white/10 text-white text-sm rounded-lg border border-white/10 disabled:opacity-40 transition-colors"
-              >
-                Siguiente →
-              </button>
-            </div>
-          </div>
-          </>
-        )}
-      </div>
-    );
+  const fetchFlights = async (p, q) => {
+    setLoadingFlights(true);
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/admin/flights?page=${p}&search=${encodeURIComponent(q)}`,
+        axiosConfig,
+      );
+      setLocalFlights(res.data.flights);
+      setTotalFlights(res.data.total);
+      setTotalPages(res.data.totalPages);
+    } catch (err) {
+      console.error("Error fetching flights:", err);
+    } finally {
+      setLoadingFlights(false);
+    }
   };
+
+  useEffect(() => {
+    fetchFlights(1, "");
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchFlights(1, search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    fetchFlights(page, search);
+  }, [page]);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-white">Gestión de Vuelos</h2>
+        <div className="flex items-center gap-3">
+          <input
+            placeholder="Buscar por ID (#473) o ruta (BOG-LIM)..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-3 py-2 bg-white/5 text-white rounded-lg border border-white/10 focus:outline-none text-sm w-72"
+          />
+          <button
+            onClick={() => setShowAddFlightModal(true)}
+            className="px-4 py-2 bg-[#E5B869] text-[#2A3F45] font-semibold rounded-lg hover:bg-[#d4a556] transition-colors whitespace-nowrap"
+          >
+            + Agregar Vuelo
+          </button>
+        </div>
+      </div>
+
+      {loadingFlights ? (
+        <div className="text-center text-gray-300 py-8">Cargando vuelos...</div>
+      ) : (
+        <div className="bg-white/5 backdrop-blur-md rounded-lg border border-white/10 overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/10">
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">ID</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">Aerolínea</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">Ruta</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">Salida</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">Asientos</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-200">Precio</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-200">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {localFlights.length > 0 ? localFlights.map((flight) => (
+                <tr key={flight.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                  <td className="px-4 py-3 text-sm text-gray-400 font-mono">#{flight.id}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">{flight.airline?.name}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-white">
+                    {flight.origin?.code} → {flight.destination?.code}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-300">
+                    {new Date(flight.departureTime).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-300">
+                    {flight.availableSeats}/{flight.totalSeats}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-300">
+                    ${flight.price?.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="relative inline-block">
+                      <select
+                        value={flight.status}
+                        onChange={(e) => updateFlightStatus(flight.id, e.target.value)}
+                        style={{ colorScheme: "dark" }}
+                        className={`pl-3 pr-7 py-1 rounded text-xs font-semibold border focus:outline-none cursor-pointer appearance-none ${
+                          flight.status === "ON_TIME"
+                            ? "bg-green-500/20 text-green-300 border-green-500/50"
+                            : flight.status === "DELAYED"
+                            ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/50"
+                            : "bg-red-500/20 text-red-300 border-red-500/50"
+                        }`}
+                      >
+                        <option value="ON_TIME">A Tiempo</option>
+                        <option value="DELAYED">Retrasado</option>
+                        <option value="CANCELLED">Cancelado</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center">
+                        <svg className="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan="7" className="px-4 py-8 text-center text-gray-400">
+                    No se encontraron vuelos.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-sm text-gray-400">
+          Página {page} de {totalPages} · {totalFlights} vuelos en total
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-sm rounded-lg border border-white/10 disabled:opacity-40 transition-colors"
+          >
+            ← Anterior
+          </button>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages || totalPages === 0}
+            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-sm rounded-lg border border-white/10 disabled:opacity-40 transition-colors"
+          >
+            Siguiente →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   // Users Section
   const UsersSection = () => (
