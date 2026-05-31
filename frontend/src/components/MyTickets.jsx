@@ -8,23 +8,25 @@ const MyTickets = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const fetchTickets = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/reservations`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setReservations(response.data);
+        } catch (err) {
+            console.error("Error cargando billetes:", err);
+            setError('No se pudieron cargar tus billetes. Por favor, intenta más tarde.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTickets = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await axios.get(`${API_URL}/reservations`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                setReservations(response.data);
-            } catch (err) {
-                console.error("Error cargando billetes:", err);
-                setError('No se pudieron cargar tus billetes. Por favor, intenta más tarde.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchTickets();
     }, []);
 
@@ -72,6 +74,14 @@ const MyTickets = () => {
 
     return (
         <div className="space-y-8">
+            <div className="flex items-center justify-end">
+                <button
+                    onClick={fetchTickets}
+                    className="px-3 py-2 bg-[#E5B869] text-[#2A3F45] rounded-md font-semibold hover:bg-[#d4a556]"
+                >
+                    Actualizar
+                </button>
+            </div>
             {reservations.map((reservation) => (
                 <div key={reservation.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* Cabecera de la Reserva */}
