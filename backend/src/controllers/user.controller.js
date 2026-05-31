@@ -265,7 +265,7 @@ export const forgotPassword = async (req, res) => {
 
     // Respondemos éxito aunque el usuario no exista (por seguridad)
     // Pero en este caso ya verificamos existencia arriba
-    res.json({ message: "¡Exito! Se ha enviado un enlace de recuperación a tu correo." });
+    res.json({ message: "¡Éxito! Se ha enviado un enlace de recuperación a tu correo. Si no lo ves, revisa tu carpeta de spam." });
 
   } catch (error) {
     console.error("Error en recuperación de contraseña:", error);
