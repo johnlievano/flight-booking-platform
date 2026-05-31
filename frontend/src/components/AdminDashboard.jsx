@@ -72,23 +72,40 @@ const AdminDashboard = ({ onLogout }) => {
         axios.get(`${API_BASE_URL}/admin/bookings`, axiosConfig),
       ]);
 
-      // Some backends may still return a paginated subset even when asking for all;
-      // if the returned flights length is less than total, fetch remaining pages.
+      // Some backends may still return a paginated subset even when asking for all.
+      // To avoid overwhelming the server we fetch remaining pages in small batches
+      // (and skip page 1 if we already have it).
       const initialFlights = flightsRes.data.flights || [];
       const total = flightsRes.data.total || initialFlights.length;
-      let allFlights = initialFlights;
-      const returnedPages = flightsRes.data.totalPages || Math.ceil(total / 50);
-      if (initialFlights.length < total) {
-        const perPage = 50;
-        const pagesToFetch = Math.max(returnedPages, Math.ceil(total / perPage));
-        const pageFetches = [];
-        for (let p = 1; p <= pagesToFetch; p++) {
-          pageFetches.push(
-            axios.get(`${API_BASE_URL}/admin/flights?page=${p}&limit=${perPage}`, axiosConfig),
-          );
+      let allFlights = initialFlights.slice();
+      const perPage = 50;
+      const returnedPages = flightsRes.data.totalPages || Math.ceil(total / perPage);
+      const pagesToFetch = Math.max(returnedPages, Math.ceil(total / perPage));
+
+      if (initialFlights.length < total && pagesToFetch > 0) {
+        const batchSize = 10; // fetch 10 pages concurrently at most
+        try {
+          for (let start = 1; start <= pagesToFetch; start += batchSize) {
+            const end = Math.min(start + batchSize - 1, pagesToFetch);
+            const chunk = [];
+            for (let p = start; p <= end; p++) {
+              // skip page 1 when we already have initialFlights from it
+              if (p === 1 && initialFlights.length > 0) continue;
+              chunk.push(
+                axios.get(`${API_BASE_URL}/admin/flights?page=${p}&limit=${perPage}`, axiosConfig),
+              );
+            }
+            if (chunk.length === 0) continue;
+            const chunkRes = await Promise.all(chunk);
+            chunkRes.forEach((r) => {
+              allFlights = allFlights.concat(r.data.flights || []);
+            });
+          }
+        } catch (err) {
+          console.error('Error fetching flight pages in batches:', err);
+          // fallback: keep whatever we managed to load
+          setError('No se pudieron cargar todas las páginas de vuelos, mostrando las disponibles');
         }
-        const pagesRes = await Promise.all(pageFetches);
-        allFlights = pagesRes.reduce((acc, r) => acc.concat(r.data.flights || []), []);
       }
 
       setFlights(allFlights);

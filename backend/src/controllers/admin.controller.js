@@ -3,27 +3,34 @@
  * Gestiona vuelos, usuarios y reservas
  */
 import prisma from "../config/prisma.js";
+import bcrypt from "bcrypt";
 
 // GET /api/admin/flights - Listar todos los vuelos con disponibilidad de asientos
 // GET /api/admin/flights - Listar vuelos con paginación
 export const getAllFlights = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 50;
+    const limit = parseInt(req.query.limit) || 50;
+    const fetchAll = req.query.all === 'true';
     const skip = (page - 1) * limit;
 
+    const flightQuery = {
+      include: {
+        airline: true,
+        origin: true,
+        destination: true,
+        _count: { select: { seats: true } }
+      },
+      orderBy: { departureTime: 'asc' }
+    };
+
+    if (!fetchAll) {
+      flightQuery.skip = skip;
+      flightQuery.take = limit;
+    }
+
     const [flights, total] = await Promise.all([
-      prisma.flight.findMany({
-        skip,
-        take: limit,
-        include: {
-          airline: true,
-          origin: true,
-          destination: true,
-          _count: { select: { seats: true } }
-        },
-        orderBy: { departureTime: 'asc' }
-      }),
+      prisma.flight.findMany(flightQuery),
       prisma.flight.count()
     ]);
 
@@ -38,7 +45,7 @@ export const getAllFlights = async (req, res) => {
       flights: flightsWithAvailability,
       total,
       page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: fetchAll ? 1 : Math.ceil(total / limit)
     });
   } catch (error) {
     console.error("Error fetching flights:", error);
@@ -255,6 +262,48 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Error al eliminar el usuario' });
+  }
+};
+
+// POST /api/admin/users - Crear un nuevo usuario desde el panel de admin
+export const createUser = async (req, res) => {
+  try {
+    const { name, email, password, phone, role } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ error: 'Nombre, email, contraseña y rol son obligatorios' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: 'El correo ya está registrado' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        phone: phone || null,
+        role,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      }
+    });
+
+    res.status(201).json({ message: 'Usuario creado exitosamente', user });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Error al crear el usuario' });
   }
 };
 

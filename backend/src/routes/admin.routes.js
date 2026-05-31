@@ -13,6 +13,7 @@ import {
   getAllUsers,
   updateUserStatus,
   deleteUser,
+  createUser,
   getAllBookings,
   updateBookingStatus
 } from '../controllers/admin.controller.js';
@@ -31,6 +32,7 @@ router.put('/flights/:id/status', updateFlightStatus);
 
 // Rutas de usuarios
 router.get('/users', getAllUsers);
+router.post('/users', requireAdmin, createUser);
 router.put('/users/:id/status', updateUserStatus);
 router.delete('/users/:id', deleteUser);
 
